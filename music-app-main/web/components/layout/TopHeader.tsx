@@ -113,9 +113,8 @@ export default function TopHeader({
 
         {/* Direct APK Download Button */}
         <a
-          href="https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/downloads/MJPulse-Music.apk"
+          download="MJPulse-Music.apk"
           className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00F2FE]/20 to-[#FF007F]/20 border border-[#00F2FE]/40 text-[#00F2FE] hover:text-white font-bold text-xs hover:scale-105 active:scale-95 transition shadow-sm"
         >
           <Download className="w-3.5 h-3.5 text-[#00F2FE]" />

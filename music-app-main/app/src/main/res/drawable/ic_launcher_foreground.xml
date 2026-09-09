@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Glowing Headphone Band -->
+    <path
+        android:strokeColor="#00F2FE"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M32,54 C32,38 42,28 54,28 C66,28 76,38 76,54" />
+
+    <!-- Left Ear Cup -->
+    <path
+        android:fillColor="#9B51E0"
+        android:pathData="M27,48 L33,48 A4,4 0 0,1 37,52 L37,64 A4,4 0 0,1 33,68 L27,68 A4,4 0 0,1 23,64 L23,52 A4,4 0 0,1 27,48 Z" />
+
+    <!-- Right Ear Cup -->
+    <path
+        android:fillColor="#9B51E0"
+        android:pathData="M75,48 L81,48 A4,4 0 0,1 85,52 L85,64 A4,4 0 0,1 81,68 L75,68 A4,4 0 0,1 71,64 L71,52 A4,4 0 0,1 75,48 Z" />
+
+    <!-- Dynamic Audio Pulse Waveform (Electric Cyan & Neon Pink) -->
+    <!-- Bar 1 -->
+    <path
+        android:strokeColor="#00F2FE"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M42,50 L42,66" />
+    <!-- Bar 2 -->
+    <path
+        android:strokeColor="#FF007F"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M48,42 L48,74" />
+    <!-- Bar 3 (Center Heartbeat Pulse) -->
+    <path
+        android:strokeColor="#00F2FE"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M54,36 L54,80" />
+    <!-- Bar 4 -->
+    <path
+        android:strokeColor="#FF007F"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M60,42 L60,74" />
+    <!-- Bar 5 -->
+    <path
+        android:strokeColor="#00F2FE"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M66,50 L66,66" />
+</vector>

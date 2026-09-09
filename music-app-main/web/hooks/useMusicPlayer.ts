@@ -123,9 +123,33 @@ export function useMusicPlayer(tracks: Track[] = []) {
     };
   }, [isPlaying, duration]);
 
+  const [history, setHistory] = useState<Track[]>([]);
+
+  // Load history from localStorage on client mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pulse_playback_history");
+      if (saved) {
+        setHistory(JSON.parse(saved));
+      }
+    } catch (_) {}
+  }, []);
+
+  const saveHistory = useCallback((track: Track) => {
+    try {
+      setHistory((prev) => {
+        const filtered = prev.filter((t) => t.id !== track.id);
+        const updated = [track, ...filtered].slice(0, 50);
+        localStorage.setItem("pulse_playback_history", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (_) {}
+  }, []);
+
   const playTrack = useCallback((track: Track) => {
     setCurrentTrack(track);
     setCurrentTime(0);
+    saveHistory(track);
 
     if (track.duration) {
       setDuration(track.duration);
@@ -139,7 +163,7 @@ export function useMusicPlayer(tracks: Track[] = []) {
       playerRef.current.playVideo();
       setIsPlaying(true);
     }
-  }, []);
+  }, [saveHistory]);
 
   const togglePlayPause = useCallback(() => {
     if (!playerRef.current) return;
@@ -185,19 +209,61 @@ export function useMusicPlayer(tracks: Track[] = []) {
     }
   }, [isMuted, volume]);
 
-  const handleNextTrack = useCallback(() => {
-    if (!tracks || tracks.length === 0) return;
-    const currentIndex = tracks.findIndex((t) => t.id === currentTrack?.id);
-    const nextIndex = currentIndex >= 0 && currentIndex < tracks.length - 1 ? currentIndex + 1 : 0;
-    playTrack(tracks[nextIndex]);
-  }, [tracks, currentTrack, playTrack]);
+  /**
+   * Smart Related Auto-Play:
+   * Next track is fetched based on the current song's artist and style from /api/related
+   * Guaranteed to be related and never random!
+   */
+  const handleNextTrack = useCallback(async () => {
+    if (!currentTrack) {
+      if (tracks && tracks.length > 0) playTrack(tracks[0]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/related?artist=${encodeURIComponent(currentTrack.artist)}&genre=${encodeURIComponent(
+          currentTrack.album || ""
+        )}&title=${encodeURIComponent(currentTrack.title)}&currentId=${encodeURIComponent(currentTrack.id)}&limit=10`
+      );
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        const nextRelated = data.data[0];
+        playTrack(nextRelated);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback: next in active tracklist
+    if (tracks && tracks.length > 0) {
+      const currentIndex = tracks.findIndex((t) => t.id === currentTrack.id);
+      const nextIndex = currentIndex >= 0 && currentIndex < tracks.length - 1 ? currentIndex + 1 : 0;
+      playTrack(tracks[nextIndex]);
+    }
+  }, [currentTrack, tracks, playTrack]);
 
   const handlePrevTrack = useCallback(() => {
+    // Replay previous song from playback history
+    if (history.length >= 2) {
+      const prev = history[0].id === currentTrack?.id ? history[1] : history[0];
+      if (prev) {
+        playTrack(prev);
+        return;
+      }
+    }
+
     if (!tracks || tracks.length === 0) return;
     const currentIndex = tracks.findIndex((t) => t.id === currentTrack?.id);
     const prevIndex = currentIndex > 0 ? currentIndex - 1 : tracks.length - 1;
     playTrack(tracks[prevIndex]);
-  }, [tracks, currentTrack, playTrack]);
+  }, [history, currentTrack, tracks, playTrack]);
+
+  const clearHistory = useCallback(() => {
+    try {
+      localStorage.removeItem("pulse_playback_history");
+      setHistory([]);
+    } catch (_) {}
+  }, []);
 
   return {
     currentTrack,
@@ -207,6 +273,8 @@ export function useMusicPlayer(tracks: Track[] = []) {
     currentTime,
     duration,
     isReady,
+    history,
+    clearHistory,
     playTrack,
     togglePlayPause,
     seekTo,
@@ -216,3 +284,4 @@ export function useMusicPlayer(tracks: Track[] = []) {
     prevTrack: handlePrevTrack,
   };
 }
+

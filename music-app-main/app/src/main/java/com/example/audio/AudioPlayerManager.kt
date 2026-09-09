@@ -72,6 +72,20 @@ class AudioPlayerManager(private val context: Context) {
     private val _isSpatialAudioEnabled = MutableStateFlow(true)
     val isSpatialAudioEnabled: StateFlow<Boolean> = _isSpatialAudioEnabled.asStateFlow()
 
+    // Smart Auto-Play & Dynamic Recommendation Queue
+    private val _dynamicQueue = MutableStateFlow<List<Song>>(emptyList())
+    val dynamicQueue: StateFlow<List<Song>> = _dynamicQueue.asStateFlow()
+
+    private val _upNextSong = MutableStateFlow<Song?>(null)
+    val upNextSong: StateFlow<Song?> = _upNextSong.asStateFlow()
+
+    val playbackHistory: StateFlow<List<Song>> = com.example.data.repository.HistoryManager.historySongs
+    val playbackHistoryItems: StateFlow<List<com.example.data.repository.HistoryItem>> = com.example.data.repository.HistoryManager.historyItems
+
+    init {
+        com.example.data.repository.HistoryManager.init(context)
+    }
+
     fun playSong(song: Song) {
         if (_currentSong.value?.id == song.id) {
             if (isPrepared && mediaPlayer != null) {
@@ -90,6 +104,28 @@ class AudioPlayerManager(private val context: Context) {
         _currentPositionMs.value = 0
         _totalDurationMs.value = song.durationSec * 1000
         playWhenReady = true
+
+        // Record into persistent playback history
+        com.example.data.repository.HistoryManager.recordSongPlay(context, song)
+
+        // Asynchronously fetch smart related recommendations for the dynamic queue
+        scope.launch {
+            try {
+                val related = MusicRepository.fetchRelatedSongsOnline(song)
+                if (related.isNotEmpty()) {
+                    _dynamicQueue.value = related
+                    _upNextSong.value = related.firstOrNull()
+                } else {
+                    val fallback = MusicRepository.getRelatedFallback(song)
+                    _dynamicQueue.value = fallback
+                    _upNextSong.value = fallback.firstOrNull()
+                }
+            } catch (e: Exception) {
+                val fallback = MusicRepository.getRelatedFallback(song)
+                _dynamicQueue.value = fallback
+                _upNextSong.value = fallback.firstOrNull()
+            }
+        }
 
         // Auto-fetch synchronized lyrics if song doesn't have them
         if (song.lyrics.isEmpty()) {
@@ -135,6 +171,8 @@ class AudioPlayerManager(private val context: Context) {
                 setOnCompletionListener {
                     _isPlaying.value = false
                     _currentPositionMs.value = 0
+                    // Auto-play next related song (NEVER random, always artist/style vibe matched)
+                    playNextRelated()
                 }
                 setOnErrorListener { _, what, extra ->
                     Log.w("AudioPlayerManager", "Streaming error ($what, $extra), falling back to simulated engine")
@@ -157,6 +195,64 @@ class AudioPlayerManager(private val context: Context) {
         }
     }
 
+    /**
+     * Plays the next smart related track from the dynamic queue.
+     * Guaranteed to match the previous song's artist, style, and acoustic vibe.
+     */
+    fun playNextRelated() {
+        val currentQueue = _dynamicQueue.value
+        val current = _currentSong.value
+
+        if (currentQueue.isNotEmpty()) {
+            val next = currentQueue.first()
+            _dynamicQueue.value = currentQueue.drop(1)
+            _upNextSong.value = _dynamicQueue.value.firstOrNull()
+            playSong(next)
+        } else if (current != null) {
+            val fallback = MusicRepository.getRelatedFallback(current)
+            if (fallback.isNotEmpty()) {
+                val next = fallback.first()
+                _dynamicQueue.value = fallback.drop(1)
+                _upNextSong.value = _dynamicQueue.value.firstOrNull()
+                playSong(next)
+            } else {
+                playSong(MusicRepository.sampleSongs.first())
+            }
+        } else {
+            playSong(MusicRepository.sampleSongs.first())
+        }
+    }
+
+    /**
+     * Replays the previous song from the user's listening history.
+     */
+    fun playPreviousHistory() {
+        val history = playbackHistory.value
+        val current = _currentSong.value
+        if (history.size >= 2) {
+            val prev = if (history[0].id == current?.id) history.getOrNull(1) else history[0]
+            if (prev != null) {
+                playSong(prev)
+                return
+            }
+        }
+        // Fallback to previous in sample songs
+        current?.let {
+            val all = MusicRepository.sampleSongs
+            val idx = all.indexOfFirst { s -> s.id == it.id }
+            val prevIdx = if (idx > 0) idx - 1 else all.size - 1
+            playSong(all[prevIdx])
+        }
+    }
+
+    fun clearHistory() {
+        com.example.data.repository.HistoryManager.clearHistory(context)
+    }
+
+    fun removeHistoryItem(songId: String) {
+        com.example.data.repository.HistoryManager.removeSong(context, songId)
+    }
+
     private fun startSimulatedProgress(song: Song) {
         progressJob?.cancel()
         lastBeatIndex = -1L
@@ -169,6 +265,7 @@ class AudioPlayerManager(private val context: Context) {
                 if (current >= _totalDurationMs.value) {
                     _currentPositionMs.value = 0
                     _isPlaying.value = false
+                    playNextRelated()
                     break
                 } else {
                     _currentPositionMs.value = current

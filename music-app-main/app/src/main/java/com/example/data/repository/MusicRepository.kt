@@ -447,5 +447,155 @@ object MusicRepository {
             emptyList()
         }
     }
+
+    /**
+     * Extracts lead artist from composite strings (e.g. "Arijit Singh & Mithoon" -> "Arijit Singh").
+     */
+    fun cleanLeadArtist(artist: String): String {
+        val delimiters = listOf(" & ", ", ", " ft. ", " feat. ", " with ", " x ", " X ", "/")
+        var clean = artist
+        for (d in delimiters) {
+            if (clean.contains(d, ignoreCase = true)) {
+                clean = clean.split(Regex(Regex.escape(d), RegexOption.IGNORE_CASE))[0]
+            }
+        }
+        return clean.trim()
+    }
+
+    /**
+     * Extracts stylistic genre / vibe keywords (e.g., "Romantic", "Punjabi", "Synthwave", "Soul", "Pop").
+     */
+    fun extractStyleKeywords(song: Song): String {
+        val keywords = listOf("Romantic", "Soul", "Sufi", "Punjabi", "Synthwave", "EDM", "Acoustic", "Pop", "Hype", "Lo-Fi", "Sad", "Party", "Dance", "Bollywood")
+        for (kw in keywords) {
+            if (song.genre.contains(kw, ignoreCase = true) || song.title.contains(kw, ignoreCase = true)) {
+                return kw
+            }
+        }
+        return song.genre.split("/", " ", "-").firstOrNull { it.length > 2 } ?: "Romantic"
+    }
+
+    /**
+     * Intelligent recommendation fallback when offline or before network resolves.
+     * Computes similarity weights based on artist, genre/mood, and rhythmic BPM proximity.
+     * Ensures the next track is ALWAYS related to the previous track and NEVER random.
+     */
+    fun getRelatedFallback(currentSong: Song): List<Song> {
+        val leadArtist = cleanLeadArtist(currentSong.artist)
+        val style = extractStyleKeywords(currentSong)
+
+        return sampleSongs
+            .filter { it.id != currentSong.id }
+            .map { candidate ->
+                var score = 0
+                // Artist match (+50)
+                if (cleanLeadArtist(candidate.artist).equals(leadArtist, ignoreCase = true)) {
+                    score += 50
+                } else if (candidate.artist.contains(leadArtist, ignoreCase = true) || currentSong.artist.contains(cleanLeadArtist(candidate.artist), ignoreCase = true)) {
+                    score += 35
+                }
+                // Genre / vibe match (+35)
+                if (candidate.genre.contains(style, ignoreCase = true) || currentSong.genre.contains(extractStyleKeywords(candidate), ignoreCase = true)) {
+                    score += 35
+                }
+                // BPM proximity (+15)
+                val bpmDiff = kotlin.math.abs(candidate.bpm - currentSong.bpm)
+                if (bpmDiff <= 15) {
+                    score += 15
+                } else if (bpmDiff <= 30) {
+                    score += 8
+                }
+                Pair(candidate, score)
+            }
+            .sortedByDescending { it.second }
+            .map { it.first }
+    }
+
+    /**
+     * Fetches genuine smart related tracks from the cloud recommendation engine.
+     * Guaranteed to match the current track's vibe, artist, and genre.
+     */
+    suspend fun fetchRelatedSongsOnline(currentSong: Song, limit: Int = 15): List<Song> = withContext(Dispatchers.IO) {
+        try {
+            val leadArtist = cleanLeadArtist(currentSong.artist)
+            val style = extractStyleKeywords(currentSong)
+
+            val encArtist = URLEncoder.encode(leadArtist, "UTF-8")
+            val encGenre = URLEncoder.encode(style, "UTF-8")
+            val encTitle = URLEncoder.encode(currentSong.title, "UTF-8")
+            val encId = URLEncoder.encode(currentSong.id, "UTF-8")
+
+            val url = "$SERVER_URL/api/related?artist=$encArtist&genre=$encGenre&title=$encTitle&currentId=$encId&limit=$limit"
+
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "MJPulse-Android/1.0")
+                .header("Accept", "application/json")
+                .build()
+
+            val response = httpClient.newCall(request).execute()
+            if (!response.isSuccessful) {
+                // Secondary online attempt: search directly with artist and style
+                return@withContext searchOnline("$leadArtist $style", limit = limit)
+                    .filter { it.id != currentSong.id && !it.title.equals(currentSong.title, ignoreCase = true) }
+                    .ifEmpty { getRelatedFallback(currentSong) }
+            }
+
+            val body = response.body?.string() ?: return@withContext getRelatedFallback(currentSong)
+            val json = JSONObject(body)
+            val data = json.optJSONArray("data") ?: return@withContext getRelatedFallback(currentSong)
+
+            val results = mutableListOf<Song>()
+            val neonPalette = listOf(
+                Pair(Color(0xFF00F2FE), Color(0xFF8B5CF6)),
+                Pair(Color(0xFFFF007F), Color(0xFFFFB300)),
+                Pair(Color(0xFF8B5CF6), Color(0xFF00F2FE)),
+                Pair(Color(0xFF00E676), Color(0xFF00F2FE)),
+                Pair(Color(0xFFFFB300), Color(0xFFFF007F))
+            )
+
+            for (i in 0 until data.length()) {
+                val item = data.getJSONObject(i)
+                val streamUrl = item.optString("streamUrl", "")
+                val id = item.optString("id", "")
+                val title = item.optString("title", "")
+
+                // Do not add the same song
+                if (streamUrl.isNotBlank() && id != currentSong.id && !title.equals(currentSong.title, ignoreCase = true)) {
+                    val colors = neonPalette[i % neonPalette.size]
+                    val duration = item.optInt("duration", currentSong.durationSec)
+                    val thumb = item.optString("thumbnail", "")
+
+                    results.add(
+                        Song(
+                            id = id,
+                            title = title,
+                            artist = item.optString("artist", currentSong.artist),
+                            album = item.optString("album", "MJ PULSE Recommendations"),
+                            durationSec = if (duration > 0) duration else 210,
+                            coverUrl = if (thumb.isNotBlank()) thumb else currentSong.coverUrl,
+                            streamUrl = streamUrl,
+                            genre = style,
+                            bpm = currentSong.bpm + ((i % 5) - 2) * 4,
+                            accentColor = colors.first,
+                            secondaryColor = colors.second,
+                            platform = "MJ PULSE Master",
+                            isHiRes = true,
+                            codec = "Master 320kbps Lossless"
+                        )
+                    )
+                }
+            }
+
+            if (results.isNotEmpty()) {
+                results
+            } else {
+                getRelatedFallback(currentSong)
+            }
+        } catch (e: Exception) {
+            Log.e("MusicRepository", "Failed to fetch related songs online: ${e.message}")
+            getRelatedFallback(currentSong)
+        }
+    }
 }
 

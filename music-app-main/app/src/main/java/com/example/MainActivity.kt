@@ -33,13 +33,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,6 +73,7 @@ import com.example.ui.components.AudioVisualizerBars
 import com.example.ui.components.GlassCard
 import com.example.ui.screens.ArchitectureHubScreen
 import com.example.ui.screens.DjModeScreen
+import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.PartyModeScreen
 import com.example.ui.screens.PlayerScreen
@@ -87,6 +91,7 @@ enum class PulseNavScreen {
     SEARCH,
     PARTY,
     DJ,
+    HISTORY,
     ARCH
 }
 
@@ -151,6 +156,7 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         },
                         onOpenPartyMode = { currentNavScreen = PulseNavScreen.PARTY },
                         onOpenDjMode = { currentNavScreen = PulseNavScreen.DJ },
+                        onOpenHistory = { currentNavScreen = PulseNavScreen.HISTORY },
                         onOpenPlayer = { isPlayerExpanded = true }
                     )
                 }
@@ -159,6 +165,15 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         onSongSelected = { song ->
                             audioPlayer.playSong(song)
                         }
+                    )
+                }
+                PulseNavScreen.HISTORY -> {
+                    HistoryScreen(
+                        audioPlayer = audioPlayer,
+                        onSongSelected = { song ->
+                            audioPlayer.playSong(song)
+                        },
+                        onNavigateDiscover = { currentNavScreen = PulseNavScreen.SEARCH }
                     )
                 }
                 PulseNavScreen.PARTY -> {
@@ -231,6 +246,7 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         isBuffering = isBuffering,
                         beatIntensity = beatIntensity,
                         onTogglePlayPause = { audioPlayer.togglePlayPause() },
+                        onNext = { audioPlayer.playNextRelated() },
                         onExpand = { isPlayerExpanded = true }
                     )
                 }
@@ -262,16 +278,10 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                     onTogglePlayPause = { audioPlayer.togglePlayPause() },
                     onSeekTo = { pos -> audioPlayer.seekTo(pos) },
                     onSkipNext = {
-                        val all = MusicRepository.sampleSongs
-                        val idx = all.indexOfFirst { it.id == song.id }
-                        val nextIdx = if (idx in 0 until all.size - 1) idx + 1 else 0
-                        audioPlayer.playSong(all[nextIdx])
+                        audioPlayer.playNextRelated()
                     },
                     onSkipPrevious = {
-                        val all = MusicRepository.sampleSongs
-                        val idx = all.indexOfFirst { it.id == song.id }
-                        val prevIdx = if (idx > 0) idx - 1 else all.size - 1
-                        audioPlayer.playSong(all[prevIdx])
+                        audioPlayer.playPreviousHistory()
                     },
                     onToggleSpatialAudio = { audioPlayer.toggleSpatialAudio() },
                     onTogglePartyMode = {
@@ -292,6 +302,7 @@ fun PersistentMiniPlayer(
     isBuffering: Boolean,
     beatIntensity: Float,
     onTogglePlayPause: () -> Unit,
+    onNext: () -> Unit,
     onExpand: () -> Unit
 ) {
     GlassCard(
@@ -350,20 +361,40 @@ fun PersistentMiniPlayer(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Mini visualizer
             AudioVisualizerBars(
                 isPlaying = isPlaying,
                 beatIntensity = beatIntensity,
-                barCount = 8,
+                barCount = 6,
                 barColor = song.accentColor,
                 modifier = Modifier
-                    .width(36.dp)
+                    .width(28.dp)
                     .height(20.dp)
             )
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Mini Skip Next (Related Track) button
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Color(0x22FFFFFF))
+                    .clickable(onClick = onNext)
+                    .testTag("mini_player_skip_next"),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SkipNext,
+                    contentDescription = "Next Related Song",
+                    tint = TextPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Mini Play/Pause button
             Box(
@@ -431,6 +462,14 @@ fun FloatingGlassNavBar(
                 tag = "nav_search"
             )
             NavItem(
+                icon = Icons.Default.History,
+                label = "History",
+                isSelected = currentScreen == PulseNavScreen.HISTORY,
+                selectedColor = Color(0xFF00FF87),
+                onClick = { onScreenSelected(PulseNavScreen.HISTORY) },
+                tag = "nav_history"
+            )
+            NavItem(
                 icon = Icons.Default.ElectricBolt,
                 label = "Party",
                 isSelected = currentScreen == PulseNavScreen.PARTY,
@@ -445,14 +484,6 @@ fun FloatingGlassNavBar(
                 selectedColor = NeonCyan,
                 onClick = { onScreenSelected(PulseNavScreen.DJ) },
                 tag = "nav_dj"
-            )
-            NavItem(
-                icon = Icons.Default.AccountTree,
-                label = "Docs",
-                isSelected = currentScreen == PulseNavScreen.ARCH,
-                selectedColor = Color(0xFF00FF87),
-                onClick = { onScreenSelected(PulseNavScreen.ARCH) },
-                tag = "nav_arch"
             )
         }
     }

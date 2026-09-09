@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.SpatialAudio
@@ -39,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.Song
+import com.example.data.repository.HistoryManager
 import com.example.data.repository.MusicRepository
 import com.example.ui.components.AudioVisualizerBars
 import com.example.ui.components.GlassCard
@@ -77,12 +80,14 @@ fun HomeScreen(
     onSongSelected: (Song) -> Unit,
     onOpenPartyMode: () -> Unit,
     onOpenDjMode: () -> Unit,
+    onOpenHistory: () -> Unit,
     onOpenPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var allSongs by remember { mutableStateOf(MusicRepository.sampleSongs) }
     var selectedPlatform by remember { mutableStateOf("All") }
     var selectedGenre by remember { mutableStateOf("All") }
+    val historySongs by HistoryManager.historySongs.collectAsState()
 
     val platforms = listOf("All", "MJ PULSE Master", "Party Edition", "Global Hits")
     val genres = listOf("All", "Bollywood", "Punjabi", "Pop", "Lo-Fi", "Hip-Hop", "EDM")
@@ -147,7 +152,30 @@ fun HomeScreen(
                     )
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // History quick launch
+                    GlassCard(
+                        shape = RoundedCornerShape(12.dp),
+                        borderColor = NeonGreen.copy(alpha = 0.5f),
+                        glowColor = NeonGreen,
+                        onClick = onOpenHistory,
+                        modifier = Modifier.testTag("home_history_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = "History",
+                                tint = NeonGreen,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text("HISTORY", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NeonGreen)
+                        }
+                    }
+
                     // Party mode quick launch
                     GlassCard(
                         shape = RoundedCornerShape(12.dp),
@@ -157,9 +185,9 @@ fun HomeScreen(
                         modifier = Modifier.testTag("home_party_mode_btn")
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ElectricBolt,
@@ -167,7 +195,7 @@ fun HomeScreen(
                                 tint = NeonPink,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Text("PARTY", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = NeonPink)
+                            Text("PARTY", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NeonPink)
                         }
                     }
 
@@ -180,9 +208,9 @@ fun HomeScreen(
                         modifier = Modifier.testTag("home_dj_mode_btn")
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Tune,
@@ -190,7 +218,7 @@ fun HomeScreen(
                                 tint = NeonCyan,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Text("DJ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = NeonCyan)
+                            Text("DJ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NeonCyan)
                         }
                     }
                 }
@@ -393,6 +421,114 @@ fun HomeScreen(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
                         )
+                    }
+                }
+            }
+        }
+
+        // Recently Played Listening Trail (if user has played songs)
+        if (historySongs.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = NeonGreen,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = "Recently Played",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+                    Text(
+                        text = "History (${historySongs.size}) →",
+                        fontSize = 12.sp,
+                        color = NeonGreen,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable(onClick = onOpenHistory)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(historySongs.take(8), key = { it.id }) { song ->
+                        GlassCard(
+                            modifier = Modifier
+                                .width(130.dp)
+                                .testTag("recent_mini_card_${song.id}"),
+                            shape = RoundedCornerShape(14.dp),
+                            borderColor = if (currentSong?.id == song.id) song.accentColor else Color(0x25FFFFFF),
+                            glowColor = if (currentSong?.id == song.id) song.accentColor else Color.Transparent,
+                            onClick = { onSongSelected(song) }
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                ) {
+                                    AsyncImage(
+                                        model = song.coverUrl,
+                                        contentDescription = song.title,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    if (currentSong?.id == song.id) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color.Black.copy(alpha = 0.45f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AudioVisualizerBars(
+                                                isPlaying = isPlaying,
+                                                beatIntensity = beatIntensity,
+                                                barCount = 4,
+                                                barColor = song.accentColor,
+                                                modifier = Modifier.size(24.dp, 16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = song.title,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = song.artist,
+                                    fontSize = 10.sp,
+                                    color = TextMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
                     }
                 }
             }

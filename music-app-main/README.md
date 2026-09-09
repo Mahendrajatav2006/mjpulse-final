@@ -1,15 +1,16 @@
 # 🎵 MJ PULSE — High-Fidelity Music Streaming Ecosystem
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMahendrajatav2006%2Fmusic-app&root-directory=web)
-[![Download APK](https://img.shields.io/badge/Download-Android%20APK%20(v1.0.0)-00F2FE?style=for-the-badge&logo=android&logoColor=black)](https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk)
+[![Live Website](https://img.shields.io/badge/Live%20Website-MJ%20PULSE%20Online-00F2FE?style=for-the-badge&logo=vercel&logoColor=white)](https://web-sigma-puce-cwpj9hlpv7.vercel.app)
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK%20(v1.0.0)-FF007F?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk)
 
 Comprehensive multi-platform music ecosystem featuring a **Native Android Mobile App** (`/app`) and a **Next.js 14 Web Player & Master Admin Dashboard** (`/web`).
 
 ---
 
-## ⚡ Quick Links
+## ⚡ Quick Links & Live Website
 
-- 🌐 **Live Web Deploy (1-Click Vercel)**: Click the **Deploy with Vercel** button above to get a permanent 24x7 live web link!
+- 🌐 **Permanent Live Website URL**: **[https://web-sigma-puce-cwpj9hlpv7.vercel.app](https://web-sigma-puce-cwpj9hlpv7.vercel.app)** *(24x7 Hamesha Live)*
+- 🌐 **Backup Live URL**: **[https://web-c34d3ff7k-mahendrajatav2006.vercel.app](https://web-c34d3ff7k-mahendrajatav2006.vercel.app)**
 - 📱 **Download Android App (APK)**: [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk)
 - 📦 **All Releases**: [GitHub Releases Page](https://github.com/Mahendrajatav2006/music-app/releases)
 

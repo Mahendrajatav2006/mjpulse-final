@@ -19,6 +19,7 @@ import {
   Radio,
   Headphones,
   Music,
+  Download,
 } from "lucide-react";
 import { NavTab } from "../../types/music";
 
@@ -178,6 +179,17 @@ export default function Sidebar({
               <span>View App Preview</span>
               <ExternalLink className="w-3 h-3 text-white/50" />
             </button>
+
+            {/* Download APK Link */}
+            <a
+              href="https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-[#00F2FE]/20 to-[#FF007F]/20 hover:from-[#00F2FE]/30 hover:to-[#FF007F]/30 border border-[#00F2FE]/40 text-[#00F2FE] hover:text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
+            >
+              <Download className="w-3 h-3 text-[#00F2FE]" />
+              <span>Download Android APK</span>
+            </a>
           </div>
 
           {/* Glowing 3D Headphones on Pedestal (Image 3 bottom-left) */}

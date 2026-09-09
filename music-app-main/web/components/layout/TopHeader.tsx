@@ -11,6 +11,7 @@ import {
   X,
   Compass,
   LayoutDashboard,
+  Download,
 } from "lucide-react";
 import { NavTab } from "../../types/music";
 
@@ -109,6 +110,17 @@ export default function TopHeader({
             <span>Showcase</span>
           </button>
         </div>
+
+        {/* Direct APK Download Button */}
+        <a
+          href="https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00F2FE]/20 to-[#FF007F]/20 border border-[#00F2FE]/40 text-[#00F2FE] hover:text-white font-bold text-xs hover:scale-105 active:scale-95 transition shadow-sm"
+        >
+          <Download className="w-3.5 h-3.5 text-[#00F2FE]" />
+          <span>Download App</span>
+        </a>
 
         {/* Notifications Icon with Red '8' Badge (Image 3) */}
         <div className="relative">

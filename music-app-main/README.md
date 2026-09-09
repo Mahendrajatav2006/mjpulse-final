@@ -1,39 +1,61 @@
-# 🎵 MJ PULSE — Music Streaming Ecosystem
+# 🎵 MJ PULSE — High-Fidelity Music Streaming Ecosystem
 
-Comprehensive multi-platform music ecosystem featuring a **Native Android Mobile App** and a **Next.js 14 Web Player & Backend Service**.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMahendrajatav2006%2Fmusic-app&root-directory=web)
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK%20(v1.0.0)-00F2FE?style=for-the-badge&logo=android&logoColor=black)](https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk)
+
+Comprehensive multi-platform music ecosystem featuring a **Native Android Mobile App** (`/app`) and a **Next.js 14 Web Player & Master Admin Dashboard** (`/web`).
+
+---
+
+## ⚡ Quick Links
+
+- 🌐 **Live Web Deploy (1-Click Vercel)**: Click the **Deploy with Vercel** button above to get a permanent 24x7 live web link!
+- 📱 **Download Android App (APK)**: [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk)
+- 📦 **All Releases**: [GitHub Releases Page](https://github.com/Mahendrajatav2006/music-app/releases)
 
 ---
 
 ## 🌟 Key Features
 
+### 🌐 Next.js Web Player & Dashboard (`/web`)
+- **Neon Dark Glassmorphism UI**: High-impact, responsive dark dashboard matching reference designs with 3D music graphics and live soundwave spectrums.
+- **Full Working Functionality**:
+  - Live search across extensive catalogs with instant playback.
+  - Interactive bottom music player with real scrubber timeline, visualizer bars, volume control, and shuffle/repeat.
+  - Metrics cards (Users, Plays, Active Streamers, Playlists, Tracks).
+  - 7-Day interactive activity spline chart.
+  - Modals for **Upload Song**, **Create Playlist**, **Push Update**, and **New Announcement**.
+  - Direct **Download Android APK** button integrated across all views.
+- **Zero-CORS Audio Engine**: Headless YouTube audio engine running via IFrame API for 100% reliable uninterrupted streaming.
+
 ### 📱 Android Mobile App (`/app`)
 - **Jetpack Compose UI**: 3D Glassmorphic dark theme, glowing neon accents, and interactive vinyl record rotation.
-- **Audio Streaming Engine**: Real streaming with safe state-machine lifecycle guards (`AudioPlayerManager.kt`) preventing native errors.
-- **Platform Catalogs**: Curated collections representing **Spotify**, **JioSaavn**, **Gaana**, and **YouTube Music** with synchronized lyrics.
+- **Audio Streaming Engine**: Real streaming with safe state-machine lifecycle guards (`AudioPlayerManager.kt`).
+- **Clean Brand Identity**: Ad-free, high-definition streaming with no third-party branding on the user interface.
 - **Special Modes**:
   - **Party Mode**: Haptic bass-reactive pulse and energetic full-screen animations.
   - **DJ Deck**: Interactive dual crossfader and tempo management.
-  - **Spatial Audio & Hi-Res Master**: 360 virtual surround toggles.
-
-### 🌐 Next.js Web Player & Backend (`/web`)
-- **Service-Oriented Architecture (SOA)**: Modular services (`youtube.service.ts`, `firebase.service.ts`) separated from API controllers (`/api/search`, `/api/auth`).
-- **Headless YouTube Engine**: Uses client-side YouTube IFrame API (`window.YT`) with a visually hidden container (`w-0 h-0`). **Completely eliminates Node.js 403 Forbidden and browser CORS issues.**
-- **Edge Caching**: 1-hour cache on search queries to conserve Google YouTube Data API quota.
+  - **Spatial Audio & Hi-Res Master**: 360° virtual surround toggles.
 
 ---
 
 ## 📁 Project Directory Structure
 
 ```plaintext
+├── .github/
+│   └── workflows/
+│       └── build-apk.yml          # Automated Android APK builder & GitHub release publisher
 ├── app/                           # Android Mobile Application (Kotlin / Jetpack Compose)
-├── web/                           # Next.js 14 Web Player & API Backend
-│   ├── app/                       # Next.js App Router (Pages & API routes)
-│   ├── components/                # React Web Player Component
-│   ├── services/                  # YouTube & Firebase backend services
-│   ├── lib/                       # Centralized configuration & error handling
+├── web/                           # Next.js 14 Web Player & Master Dashboard
+│   ├── app/                       # Next.js App Router (Pages, Download route & Search API)
+│   ├── components/                # Modular UI Components (Dashboard, Showcase, Player, Modals)
+│   ├── hooks/                     # Custom hooks (useMusicPlayer with YouTube IFrame API)
+│   ├── services/                  # Backend Music & YouTube services
+│   ├── types/                     # Shared TypeScript interfaces
 │   └── package.json               # Web dependencies
+├── vercel.json                    # 1-Click Vercel cloud deployment config
 ├── DEVELOPER_HANDOFF.md           # In-depth architectural & developer guide
-├── README.md                      # Project overview
+├── README.md                      # Project overview & download links
 └── build.gradle.kts               # Android project build configuration
 ```
 
@@ -41,20 +63,23 @@ Comprehensive multi-platform music ecosystem featuring a **Native Android Mobile
 
 ## 🚀 Getting Started
 
-### Running the Android App
-1. Open the root folder in **Android Studio**.
-2. Sync Gradle dependencies.
-3. Run on an Android device or emulator running API 29+.
+### 1. Free 24x7 Web Hosting on Vercel
+1. Click the **[Deploy with Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMahendrajatav2006%2Fmusic-app&root-directory=web)** button.
+2. Sign in with your GitHub account.
+3. Click **Deploy**.
+4. In under 1 minute, your website will be permanently live with a free URL (e.g. `https://your-app.vercel.app`).
 
-### Running the Web Player
+### 2. Building the Android App APK
+The Android APK is automatically built by GitHub Actions upon push. You can also build it locally:
 ```bash
-cd web
-npm install
-cp .env.example .env.local
-# Add your YOUTUBE_API_KEY in .env.local
-npm run dev
+cd app
+# Windows
+..\gradlew.bat assembleDebug
+# Mac / Linux
+./gradlew assembleDebug
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the Web Player.
+The generated APK will be at:
+`app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 

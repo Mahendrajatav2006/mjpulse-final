@@ -133,13 +133,16 @@ export default function ShowcaseView({
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                onClick={() => alert("Downloading Android APK: app-release.apk")}
+              <a
+                href="https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                download="MJPulse-Music.apk"
                 className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#00F2FE] to-[#00c6ff] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#00F2FE]/30 hover:scale-105 active:scale-95 transition flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Download for Android</span>
-              </button>
+                <span>Download for Android (APK)</span>
+              </a>
 
               <button
                 onClick={() => alert("iOS App Store build coming soon with TestFlight")}

@@ -125,6 +125,7 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
     val totalDurationMs by audioPlayer.totalDurationMs.collectAsState()
     val beatIntensity by audioPlayer.beatIntensity.collectAsState()
     val isSpatialAudio by audioPlayer.isSpatialAudioEnabled.collectAsState()
+    val isHapticSyncEnabled by audioPlayer.hapticSyncEnabled.collectAsState()
 
     // Handle back button when full player is open
     BackHandler(enabled = isPlayerExpanded) {
@@ -161,10 +162,20 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                     )
                 }
                 PulseNavScreen.PARTY -> {
+                    DisposableEffect(Unit) {
+                        audioPlayer.setPartyMode(true)
+                        onDispose {
+                            audioPlayer.setPartyMode(false)
+                        }
+                    }
                     PartyModeScreen(
                         currentSong = currentSong ?: MusicRepository.sampleSongs.first(),
                         isPlaying = isPlaying,
                         beatIntensity = beatIntensity,
+                        hapticSyncEnabled = isHapticSyncEnabled,
+                        onToggleHapticSync = { enabled ->
+                            audioPlayer.setHapticSyncEnabled(enabled)
+                        },
                         onTogglePlayPause = {
                             if (currentSong == null) {
                                 audioPlayer.playSong(MusicRepository.sampleSongs.first())
@@ -173,7 +184,7 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                             }
                         },
                         onTriggerHaptic = {
-                            audioPlayer.triggerHapticPulse(45)
+                            audioPlayer.triggerHapticPulse(45, 255, true)
                         },
                         onClose = { currentNavScreen = PulseNavScreen.HOME }
                     )

@@ -56,6 +56,11 @@ class AudioPlayerManager(private val context: Context) {
     private val _partyModeActive = MutableStateFlow(false)
     val partyModeActive: StateFlow<Boolean> = _partyModeActive.asStateFlow()
 
+    private val _hapticSyncEnabled = MutableStateFlow(true)
+    val hapticSyncEnabled: StateFlow<Boolean> = _hapticSyncEnabled.asStateFlow()
+
+    private var lastBeatIndex: Long = -1L
+
     private val _beatIntensity = MutableStateFlow(0f)
     val beatIntensity: StateFlow<Float> = _beatIntensity.asStateFlow()
 
@@ -141,16 +146,19 @@ class AudioPlayerManager(private val context: Context) {
 
     private fun startSimulatedProgress(song: Song) {
         progressJob?.cancel()
+        lastBeatIndex = -1L
         _totalDurationMs.value = song.durationSec * 1000
+        val startTime = System.currentTimeMillis() - _currentPositionMs.value
         progressJob = scope.launch {
             while (isActive && _isPlaying.value) {
-                delay(200)
-                val nextPos = _currentPositionMs.value + 200
-                if (nextPos >= _totalDurationMs.value) {
+                delay(16)
+                val current = (System.currentTimeMillis() - startTime).toInt()
+                if (current >= _totalDurationMs.value) {
                     _currentPositionMs.value = 0
                     _isPlaying.value = false
+                    break
                 } else {
-                    _currentPositionMs.value = nextPos
+                    _currentPositionMs.value = current
                 }
                 updateBeatPulse()
             }
@@ -170,6 +178,7 @@ class AudioPlayerManager(private val context: Context) {
 
     fun resume() {
         playWhenReady = true
+        lastBeatIndex = -1L
         if (isPreparing) {
             // Still preparing in state 4; do NOT call mediaPlayer.start() directly!
             // onPrepared will execute mp.start() safely as playWhenReady is true.
@@ -200,6 +209,7 @@ class AudioPlayerManager(private val context: Context) {
 
     fun seekTo(positionMs: Int) {
         _currentPositionMs.value = positionMs
+        lastBeatIndex = -1L
         if (isPrepared) {
             try {
                 mediaPlayer?.seekTo(positionMs)
@@ -207,11 +217,23 @@ class AudioPlayerManager(private val context: Context) {
         }
     }
 
+    fun setPartyMode(active: Boolean) {
+        _partyModeActive.value = active
+        if (active) {
+            lastBeatIndex = -1L
+            triggerHapticPulse(45, 255, isHeavy = true)
+        }
+    }
+
     fun togglePartyMode() {
-        val newState = !_partyModeActive.value
-        _partyModeActive.value = newState
-        if (newState) {
-            triggerHapticPulse(50)
+        setPartyMode(!_partyModeActive.value)
+    }
+
+    fun setHapticSyncEnabled(enabled: Boolean) {
+        _hapticSyncEnabled.value = enabled
+        if (enabled) {
+            lastBeatIndex = -1L
+            triggerHapticPulse(30, 200, isHeavy = false)
         }
     }
 
@@ -229,14 +251,27 @@ class AudioPlayerManager(private val context: Context) {
         }
     }
 
-    fun triggerHapticPulse(durationMs: Long = 30) {
+    fun triggerHapticPulse(durationMs: Long = 30, amplitude: Int = 200, isHeavy: Boolean = false) {
         try {
             if (vibrator?.hasVibrator() == true) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        val effect = when {
+                            isHeavy -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                            amplitude > 160 -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+                            else -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                        }
+                        vibrator.vibrate(effect)
+                        return
+                    } catch (_: Exception) {
+                        // Fallback to createOneShot if predefined isn't supported on device
+                    }
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     vibrator.vibrate(
                         VibrationEffect.createOneShot(
                             durationMs,
-                            VibrationEffect.DEFAULT_AMPLITUDE
+                            amplitude.coerceIn(1, 255)
                         )
                     )
                 } else {
@@ -249,6 +284,7 @@ class AudioPlayerManager(private val context: Context) {
 
     private fun startProgressTracker() {
         progressJob?.cancel()
+        lastBeatIndex = -1L
         progressJob = scope.launch {
             while (isActive && _isPlaying.value) {
                 try {
@@ -261,23 +297,42 @@ class AudioPlayerManager(private val context: Context) {
                     }
                 } catch (_: Exception) {}
                 updateBeatPulse()
-                delay(100)
+                delay(16) // ~60fps high precision beat tracking and visual responsiveness
             }
         }
     }
 
     private fun updateBeatPulse() {
         val song = _currentSong.value ?: return
-        val bpm = song.bpm
-        val beatIntervalMs = (60_000f / bpm).toInt()
-        val pos = _currentPositionMs.value
-        val beatFraction = (pos % beatIntervalMs).toFloat() / beatIntervalMs
-        val intensity = (1f - beatFraction).coerceIn(0f, 1f)
-        _beatIntensity.value = intensity
+        val rawBpm = song.bpm
+        val bpm = if (rawBpm in 50..220) rawBpm else 128
+        val beatIntervalMs = (60_000.0 / bpm).toLong().coerceAtLeast(200L)
+        val pos = _currentPositionMs.value.toLong().coerceAtLeast(0L)
 
-        // Trigger haptic beat sync on peak if party mode is active
-        if (_partyModeActive.value && beatFraction < 0.1f) {
-            triggerHapticPulse(25)
+        // Beat clock calculation
+        val currentBeatIndex = pos / beatIntervalMs
+        val beatElapsedMs = pos % beatIntervalMs
+        val beatFraction = (beatElapsedMs.toFloat() / beatIntervalMs.toFloat()).coerceIn(0f, 1f)
+
+        // Punchy exponential decay for crisp visual reactive pulsing
+        val rawIntensity = (1f - beatFraction)
+        _beatIntensity.value = (rawIntensity * rawIntensity).coerceIn(0f, 1f)
+
+        // Exact onset beat trigger - fires precisely when the song enters a new beat boundary
+        if (currentBeatIndex != lastBeatIndex) {
+            lastBeatIndex = currentBeatIndex
+            if (_partyModeActive.value && _hapticSyncEnabled.value && _isPlaying.value) {
+                if (currentBeatIndex % 4L == 0L) {
+                    // Downbeat (Kick on beat 1)
+                    triggerHapticPulse(durationMs = 42, amplitude = 255, isHeavy = true)
+                } else if (currentBeatIndex % 2L == 0L) {
+                    // Snare / Clap on beat 3
+                    triggerHapticPulse(durationMs = 28, amplitude = 200, isHeavy = false)
+                } else {
+                    // Hi-hat / rhythmic tick on offbeats
+                    triggerHapticPulse(durationMs = 16, amplitude = 140, isHeavy = false)
+                }
+            }
         }
     }
 

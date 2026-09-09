@@ -68,12 +68,13 @@ fun PartyModeScreen(
     currentSong: Song?,
     isPlaying: Boolean,
     beatIntensity: Float,
+    hapticSyncEnabled: Boolean = true,
+    onToggleHapticSync: (Boolean) -> Unit = {},
     onTogglePlayPause: () -> Unit,
     onTriggerHaptic: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var hapticEnabled by remember { mutableStateOf(true) }
     var strobeFlashEnabled by remember { mutableStateOf(false) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -176,27 +177,27 @@ fun PartyModeScreen(
                     val center = Offset(size.width / 2f, size.height / 2f)
                     val baseRadius = size.width / 3f
 
-                    // Ring 1
+                    // Ring 1 - Dynamic Shockwave
                     drawCircle(
-                        color = activeColor.copy(alpha = 0.15f * beatIntensity),
-                        radius = baseRadius * pulseRing * 1.3f,
+                        color = activeColor.copy(alpha = (0.12f + 0.38f * beatIntensity).coerceIn(0f, 1f)),
+                        radius = baseRadius * (1f + 0.35f * beatIntensity) * pulseRing,
                         center = center
                     )
 
-                    // Ring 2
+                    // Ring 2 - Beat punch outline
                     drawCircle(
-                        color = NeonCyan.copy(alpha = 0.3f),
-                        radius = baseRadius * pulseRing,
+                        color = NeonCyan.copy(alpha = (0.25f + 0.45f * beatIntensity).coerceIn(0f, 1f)),
+                        radius = baseRadius * (0.92f + 0.22f * beatIntensity),
                         center = center,
-                        style = Stroke(width = 3.dp.toPx())
+                        style = Stroke(width = (2.5f + 4f * beatIntensity).dp.toPx())
                     )
 
-                    // Ring 3
+                    // Ring 3 - Gradient sweep core ring
                     drawCircle(
                         brush = Brush.sweepGradient(listOf(NeonPink, NeonCyan, NeonGreen, NeonPink)),
-                        radius = baseRadius * 0.85f,
+                        radius = baseRadius * (0.80f + 0.15f * beatIntensity),
                         center = center,
-                        style = Stroke(width = 4.dp.toPx())
+                        style = Stroke(width = (3.5f + 3f * beatIntensity).dp.toPx())
                     )
                 }
 
@@ -264,7 +265,7 @@ fun PartyModeScreen(
                     // Haptic Beat Sync Toggle
                     GlassCard(
                         modifier = Modifier.weight(1f),
-                        borderColor = if (hapticEnabled) NeonPink else Color(0x33FFFFFF)
+                        borderColor = if (hapticSyncEnabled) NeonPink else Color(0x33FFFFFF)
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -274,14 +275,14 @@ fun PartyModeScreen(
                             Icon(
                                 imageVector = Icons.Default.Vibration,
                                 contentDescription = null,
-                                tint = if (hapticEnabled) NeonPink else TextMuted,
+                                tint = if (hapticSyncEnabled) NeonPink else TextMuted,
                                 modifier = Modifier.size(20.dp)
                             )
                             Text("Haptic Sync", fontSize = 12.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
                             Switch(
-                                checked = hapticEnabled,
+                                checked = hapticSyncEnabled,
                                 onCheckedChange = {
-                                    hapticEnabled = it
+                                    onToggleHapticSync(it)
                                     if (it) onTriggerHaptic()
                                 },
                                 colors = SwitchDefaults.colors(

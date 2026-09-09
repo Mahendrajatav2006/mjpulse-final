@@ -9,6 +9,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import com.example.data.model.Song
+import com.example.data.repository.MusicRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,6 +90,18 @@ class AudioPlayerManager(private val context: Context) {
         _currentPositionMs.value = 0
         _totalDurationMs.value = song.durationSec * 1000
         playWhenReady = true
+
+        // Auto-fetch synchronized lyrics if song doesn't have them
+        if (song.lyrics.isEmpty()) {
+            scope.launch {
+                try {
+                    val cloudLyrics = MusicRepository.fetchLyricsOnline(song.title, song.artist, song.durationSec)
+                    if (cloudLyrics.isNotEmpty() && _currentSong.value?.id == song.id) {
+                        _currentSong.value = _currentSong.value?.copy(lyrics = cloudLyrics)
+                    }
+                } catch (_: Exception) {}
+            }
+        }
 
         releasePlayer()
 

@@ -1,9 +1,15 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -268,34 +274,136 @@ fun PlayerScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Live Synchronized Lyrics Card
+            val activeLyricIndex = remember(currentSeconds, song.lyrics) {
+                song.lyrics.indexOfLast { it.timeSec <= currentSeconds }
+            }
+
             GlassCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showLyrics = !showLyrics },
-                borderColor = NeonViolet.copy(alpha = 0.4f),
+                    .animateContentSize(),
+                borderColor = if (showLyrics) NeonViolet else Color(0x33FFFFFF),
                 glowColor = NeonViolet
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(14.dp)
                 ) {
-                    Text(
-                        text = "SYNCED LYRICS",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = NeonViolet,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = currentLyric,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary,
-                        textAlign = TextAlign.Center
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Subtitles,
+                                contentDescription = null,
+                                tint = NeonViolet,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "SYNCED LYRICS",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = NeonViolet,
+                                letterSpacing = 1.sp
+                            )
+                            if (song.lyrics.isNotEmpty()) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                NeonBadge(text = "${song.lyrics.size} LINES", color = NeonGreen)
+                            }
+                        }
+
+                        Text(
+                            text = if (showLyrics) "Minimize ▲" else "Expand Full ▼",
+                            fontSize = 11.sp,
+                            color = NeonCyan,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable { showLyrics = !showLyrics }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    if (song.lyrics.isNotEmpty()) {
+                        if (showLyrics) {
+                            val lyricsListState = rememberLazyListState()
+
+                            LaunchedEffect(activeLyricIndex) {
+                                if (activeLyricIndex >= 0) {
+                                    lyricsListState.animateScrollToItem(
+                                        (activeLyricIndex - 1).coerceAtLeast(0)
+                                    )
+                                }
+                            }
+
+                            LazyColumn(
+                                state = lyricsListState,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(190.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                itemsIndexed(song.lyrics) { index, line ->
+                                    val isActive = index == activeLyricIndex
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(
+                                                if (isActive) NeonViolet.copy(alpha = 0.25f)
+                                                else Color.Transparent
+                                            )
+                                            .clickable {
+                                                onSeekTo(line.timeSec * 1000)
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                                    ) {
+                                        Text(
+                                            text = line.text,
+                                            fontSize = if (isActive) 16.sp else 13.sp,
+                                            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Normal,
+                                            color = if (isActive) NeonCyan else TextSecondary.copy(alpha = 0.65f),
+                                            lineHeight = 22.sp
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = currentLyric,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextPrimary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showLyrics = true }
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = NeonViolet,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Syncing master lyrics with audio...",
+                                fontSize = 12.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
                 }
             }
 

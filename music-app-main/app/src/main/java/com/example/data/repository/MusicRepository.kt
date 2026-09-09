@@ -376,4 +376,76 @@ object MusicRepository {
             sampleSongs
         }
     }
+
+    /**
+     * Real-time search autocomplete suggestions powered by YouTube & JioSaavn APIs.
+     * Fires on every character typed for instant dropdown assistance.
+     */
+    suspend fun getSuggestionsOnline(query: String): List<String> = withContext(Dispatchers.IO) {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return@withContext emptyList()
+        try {
+            val encoded = URLEncoder.encode(trimmed, "UTF-8")
+            val url = "$SERVER_URL/api/suggest?q=$encoded"
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "MJPulse-Android/1.0")
+                .header("Accept", "application/json")
+                .build()
+
+            val response = httpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext emptyList()
+            val body = response.body?.string() ?: return@withContext emptyList()
+            val json = JSONObject(body)
+            val data = json.optJSONArray("suggestions") ?: return@withContext emptyList()
+            val list = mutableListOf<String>()
+            for (i in 0 until data.length()) {
+                val s = data.optString(i, "").trim()
+                if (s.isNotEmpty()) {
+                    list.add(s)
+                }
+            }
+            list
+        } catch (e: Exception) {
+            Log.w("MusicRepository", "Failed to fetch suggestions: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Fetches exact synchronized lyrics from LRCLIB cloud database.
+     * Provides millisecond-accurate timestamps for active singing line synchronization.
+     */
+    suspend fun fetchLyricsOnline(title: String, artist: String, durationSec: Int = 0): List<LyricLine> = withContext(Dispatchers.IO) {
+        try {
+            val encTitle = URLEncoder.encode(title.trim(), "UTF-8")
+            val encArtist = URLEncoder.encode(artist.trim(), "UTF-8")
+            val url = "$SERVER_URL/api/lyrics?title=$encTitle&artist=$encArtist&duration=$durationSec"
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "MJPulse-Android/1.0")
+                .header("Accept", "application/json")
+                .build()
+
+            val response = httpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext emptyList()
+            val body = response.body?.string() ?: return@withContext emptyList()
+            val json = JSONObject(body)
+            val data = json.optJSONArray("lyrics") ?: return@withContext emptyList()
+            val lyrics = mutableListOf<LyricLine>()
+            for (i in 0 until data.length()) {
+                val item = data.getJSONObject(i)
+                val time = item.optInt("timeSec", 0)
+                val text = item.optString("text", "").trim()
+                if (text.isNotEmpty()) {
+                    lyrics.add(LyricLine(timeSec = time, text = text))
+                }
+            }
+            lyrics
+        } catch (e: Exception) {
+            Log.w("MusicRepository", "Failed to fetch lyrics: ${e.message}")
+            emptyList()
+        }
+    }
 }
+

@@ -21,11 +21,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.NorthWest
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,6 +82,23 @@ fun SearchScreen(
     var searchResults by remember { mutableStateOf(MusicRepository.sampleSongs) }
     var isSearching by remember { mutableStateOf(false) }
 
+    var suggestions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showSuggestions by remember { mutableStateOf(false) }
+
+    // Instant YouTube-style autocomplete suggestions as user types each letter
+    LaunchedEffect(searchQuery) {
+        val q = searchQuery.trim()
+        if (q.isNotEmpty()) {
+            delay(100)
+            val list = MusicRepository.getSuggestionsOnline(q)
+            suggestions = list
+            showSuggestions = list.isNotEmpty()
+        } else {
+            suggestions = emptyList()
+            showSuggestions = false
+        }
+    }
+
     LaunchedEffect(searchQuery, selectedPlatformFilter, selectedMoodFilter) {
         val trimmed = searchQuery.trim()
         val effectivePlatform = if (selectedPlatformFilter == "All") null else selectedPlatformFilter
@@ -99,7 +119,7 @@ fun SearchScreen(
 
         isSearching = true
         if (trimmed.isNotBlank()) {
-            delay(350)
+            delay(220)
         }
 
         val targetQuery = if (trimmed.isNotBlank()) trimmed else (effectiveGenre ?: "Top Hits")
@@ -174,6 +194,125 @@ fun SearchScreen(
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true
             )
+        }
+
+        // YouTube-style Instant Autocomplete Suggestions Dropdown
+        if (showSuggestions && suggestions.isNotEmpty() && searchQuery.isNotBlank()) {
+            item {
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    borderColor = NeonCyan.copy(alpha = 0.45f),
+                    glowColor = NeonCyan
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("⚡", fontSize = 12.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "SUGGESTIONS",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = NeonCyan,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                            Text(
+                                text = "Hide ✕",
+                                fontSize = 11.sp,
+                                color = TextMuted,
+                                modifier = Modifier.clickable { showSuggestions = false }
+                            )
+                        }
+
+                        suggestions.take(6).forEach { suggestion ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        searchQuery = suggestion
+                                        showSuggestions = false
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TrendingUp,
+                                    contentDescription = null,
+                                    tint = NeonCyan,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = suggestion,
+                                    fontSize = 14.sp,
+                                    color = TextPrimary,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.NorthWest,
+                                    contentDescription = null,
+                                    tint = TextSecondary.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Quick Trending Search Pills when idle
+        if (searchQuery.isBlank()) {
+            item {
+                val trendingTags = listOf(
+                    "Kesariya", "Arijit Singh", "Diljit Dosanjh",
+                    "Tum Hi Ho", "Apna Bana Le", "Sidhu Moosewala",
+                    "Starboy", "Lo-Fi Chill", "Channa Mereya"
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    trendingTags.forEach { tag ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Color(0x22151A2E))
+                                .border(1.dp, Color(0x3300F2FE), RoundedCornerShape(20.dp))
+                                .clickable {
+                                    searchQuery = tag
+                                    showSuggestions = false
+                                }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🔥", fontSize = 11.sp)
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    text = tag,
+                                    fontSize = 12.sp,
+                                    color = TextPrimary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (isSearching) {

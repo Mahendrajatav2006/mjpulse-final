@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,19 +80,30 @@ fun HomeScreen(
     onOpenPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val allSongs = remember { MusicRepository.sampleSongs }
+    var allSongs by remember { mutableStateOf(MusicRepository.sampleSongs) }
     var selectedPlatform by remember { mutableStateOf("All") }
     var selectedGenre by remember { mutableStateOf("All") }
 
     val platforms = listOf("All", "MJ PULSE Master", "Party Edition", "Global Hits")
     val genres = listOf("All", "Bollywood", "Punjabi", "Pop", "Lo-Fi", "Hip-Hop", "EDM")
 
-    val displayedSongs = remember(selectedPlatform, selectedGenre) {
-        MusicRepository.search(
-            query = "",
-            selectedGenre = if (selectedGenre == "All") null else selectedGenre,
-            selectedPlatform = if (selectedPlatform == "All") null else selectedPlatform
-        )
+    LaunchedEffect(Unit) {
+        val trending = MusicRepository.getTrendingOnline(limit = 20)
+        if (trending.isNotEmpty()) {
+            allSongs = trending
+        }
+    }
+
+    val displayedSongs = remember(allSongs, selectedPlatform, selectedGenre) {
+        val platformFilter = if (selectedPlatform == "All") null else selectedPlatform
+        val genreFilter = if (selectedGenre == "All") null else selectedGenre
+
+        val filtered = allSongs.filter { song ->
+            val matchesGenre = genreFilter == null || song.genre.contains(genreFilter, ignoreCase = true)
+            val matchesPlatform = platformFilter == null || song.platform.equals(platformFilter, ignoreCase = true)
+            matchesGenre && matchesPlatform
+        }
+        if (filtered.isNotEmpty()) filtered else allSongs
     }
 
     LazyColumn(

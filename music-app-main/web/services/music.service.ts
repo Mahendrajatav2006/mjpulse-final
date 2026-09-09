@@ -7,29 +7,37 @@ export class MusicService {
     const trimmed = query?.trim() || "";
 
     if (!trimmed) {
-      return this.getTrendingTracks();
+      return this.getTrendingTracks(limit);
     }
 
     try {
-      // Primary: YouTube Music provides exact playable videoIds for seamless playback
-      const ytTracks = await youtubeService.searchTracks(trimmed, limit);
-      if (ytTracks && ytTracks.length > 0) {
-        return ytTracks;
-      }
-
-      // Secondary: Try JioSaavn
+      // Primary: JioSaavn provides direct 320kbps audio streams for Android App and Web
       const saavnTracks = await saavnService.searchTracks(trimmed, limit);
       if (saavnTracks && saavnTracks.length > 0) {
         return saavnTracks;
+      }
+
+      // Secondary: Try YouTube Music
+      const ytTracks = await youtubeService.searchTracks(trimmed, limit);
+      if (ytTracks && ytTracks.length > 0) {
+        return ytTracks;
       }
     } catch (err) {
       console.error("[MusicService] Search error:", err);
     }
 
-    return youtubeService.getTrendingTracks();
+    return this.getTrendingTracks(limit);
   }
 
-  async getTrendingTracks(): Promise<Track[]> {
+  async getTrendingTracks(limit: number = 20): Promise<Track[]> {
+    try {
+      const trending = await saavnService.searchTracks("Top Bollywood Hindi Hits", limit);
+      if (trending && trending.length > 0) {
+        return trending;
+      }
+    } catch (err) {
+      console.error("[MusicService] Trending error:", err);
+    }
     return youtubeService.getTrendingTracks();
   }
 }

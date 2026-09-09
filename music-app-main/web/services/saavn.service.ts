@@ -1,4 +1,5 @@
 import { Track } from "../types/music";
+import CryptoJS from "crypto-js";
 
 export class SaavnService {
   private cleanHtmlEntities(str: string): string {
@@ -19,7 +20,27 @@ export class SaavnService {
     return `${mins}:${remainder < 10 ? "0" : ""}${remainder}`;
   }
 
-  async searchTracks(query: string, limit: number = 10): Promise<Track[]> {
+  private decryptMediaUrl(encryptedUrl?: string): string {
+    if (!encryptedUrl) return "";
+    try {
+      const key = CryptoJS.enc.Utf8.parse("38346591");
+      const cipherParams = CryptoJS.lib.CipherParams.create({
+        ciphertext: CryptoJS.enc.Base64.parse(encryptedUrl),
+      });
+      const decrypted = CryptoJS.DES.decrypt(cipherParams, key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7,
+      });
+      const url = decrypted.toString(CryptoJS.enc.Utf8);
+      if (!url) return "";
+      // Return highest quality 320kbps MP4 audio
+      return url.replace(/_\d+\.mp4/, "_320.mp4");
+    } catch (err) {
+      return "";
+    }
+  }
+
+  async searchTracks(query: string, limit: number = 20): Promise<Track[]> {
     if (!query || !query.trim()) return [];
 
     try {
@@ -54,16 +75,21 @@ export class SaavnService {
           this.cleanHtmlEntities(item.more_info?.music || item.subtitle || "Unknown Artist");
 
         const durationSec = parseInt(item.more_info?.duration || "0", 10);
+        const streamUrl =
+          this.decryptMediaUrl(item.more_info?.encrypted_media_url) ||
+          item.more_info?.vlink ||
+          "";
 
         return {
-          id: item.id,
+          id: item.id || `saavn-${Math.random().toString(36).substring(2, 8)}`,
           title: this.cleanHtmlEntities(item.title || "Untitled"),
           artist,
           album: this.cleanHtmlEntities(item.more_info?.album || ""),
           thumbnail: image || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500",
+          streamUrl,
           duration: durationSec > 0 ? durationSec : undefined,
           durationFormatted: this.formatDuration(item.more_info?.duration),
-          source: "JioSaavn",
+          source: "MJ PULSE Cloud",
         };
       });
     } catch (error) {
@@ -74,3 +100,4 @@ export class SaavnService {
 }
 
 export const saavnService = new SaavnService();
+

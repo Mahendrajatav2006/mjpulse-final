@@ -4,6 +4,7 @@ export interface Track {
   artist: string;
   album?: string;
   thumbnail: string;
+  streamUrl?: string;
   duration?: number;
   durationFormatted?: string;
   source?: string;

@@ -34,10 +34,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,7 +76,11 @@ fun SearchScreen(
     var selectedMoodFilter by remember { mutableStateOf<String?>(null) }
     val moodFilters = listOf("Bollywood", "Punjabi", "Lo-Fi Chill", "Desi Hip-Hop", "EDM Fest")
 
-    val searchResults = remember(searchQuery, selectedPlatformFilter, selectedMoodFilter) {
+    var searchResults by remember { mutableStateOf(MusicRepository.sampleSongs) }
+    var isSearching by remember { mutableStateOf(false) }
+
+    LaunchedEffect(searchQuery, selectedPlatformFilter, selectedMoodFilter) {
+        val trimmed = searchQuery.trim()
         val effectivePlatform = if (selectedPlatformFilter == "All") null else selectedPlatformFilter
         val effectiveGenre = when (selectedMoodFilter) {
             "Bollywood" -> "Bollywood"
@@ -84,11 +90,22 @@ fun SearchScreen(
             "EDM Fest" -> "EDM"
             else -> null
         }
-        MusicRepository.search(
-            query = searchQuery,
-            selectedGenre = effectiveGenre,
-            selectedPlatform = effectivePlatform
-        )
+
+        if (trimmed.isBlank() && effectiveGenre == null && effectivePlatform == null) {
+            searchResults = MusicRepository.sampleSongs
+            isSearching = false
+            return@LaunchedEffect
+        }
+
+        isSearching = true
+        if (trimmed.isNotBlank()) {
+            delay(350)
+        }
+
+        val targetQuery = if (trimmed.isNotBlank()) trimmed else (effectiveGenre ?: "Top Hits")
+        val online = MusicRepository.searchOnline(targetQuery)
+        searchResults = if (online.isNotEmpty()) online else MusicRepository.search(targetQuery, effectiveGenre, effectivePlatform)
+        isSearching = false
     }
 
     LazyColumn(
@@ -157,6 +174,19 @@ fun SearchScreen(
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true
             )
+        }
+
+        if (isSearching) {
+            item {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = NeonCyan,
+                    trackColor = Color(0x2200F2FE)
+                )
+            }
         }
 
         // Platform Filter Row

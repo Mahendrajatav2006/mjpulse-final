@@ -25,8 +25,6 @@ import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.NorthWest
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
@@ -41,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,7 +60,6 @@ import com.example.ui.components.NeonBadge
 import com.example.ui.theme.NeonCyan
 import com.example.ui.theme.NeonGreen
 import com.example.ui.theme.NeonPink
-import com.example.ui.theme.NeonViolet
 import com.example.ui.theme.PulseBackground
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextPrimary
@@ -84,27 +80,6 @@ fun SearchScreen(
 
     var searchResults by remember { mutableStateOf(MusicRepository.sampleSongs) }
     var isSearching by remember { mutableStateOf(false) }
-
-    val searchHistory = remember {
-        mutableStateListOf(
-            "Arijit Singh",
-            "Diljit Dosanjh",
-            "Kesariya",
-            "Starboy",
-            "Lo-Fi Chill"
-        )
-    }
-
-    val addToSearchHistory: (String) -> Unit = { query ->
-        val clean = query.trim()
-        if (clean.isNotBlank()) {
-            searchHistory.removeAll { it.equals(clean, ignoreCase = true) }
-            searchHistory.add(0, clean)
-            if (searchHistory.size > 10) {
-                searchHistory.removeAt(searchHistory.size - 1)
-            }
-        }
-    }
 
     var suggestions by remember { mutableStateOf<List<String>>(emptyList()) }
     var showSuggestions by remember { mutableStateOf(false) }
@@ -297,161 +272,6 @@ fun SearchScreen(
             }
         }
 
-        // Search History (Recent Searches) when idle
-        if (searchQuery.isBlank() && searchHistory.isNotEmpty()) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.History,
-                                contentDescription = "Search History",
-                                tint = NeonCyan,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "SEARCH HISTORY",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary,
-                                letterSpacing = 0.5.sp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0x2200F2FE))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "${searchHistory.size}",
-                                    fontSize = 10.sp,
-                                    color = NeonCyan,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = "Clear All",
-                            fontSize = 11.sp,
-                            color = NeonPink,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .clickable { searchHistory.clear() }
-                                .padding(4.dp)
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        searchHistory.take(5).forEach { term ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color(0x15FFFFFF))
-                                    .clickable {
-                                        searchQuery = term
-                                        addToSearchHistory(term)
-                                        showSuggestions = false
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.History,
-                                        contentDescription = null,
-                                        tint = TextMuted,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(
-                                        text = term,
-                                        fontSize = 13.sp,
-                                        color = TextPrimary,
-                                        fontWeight = FontWeight.Normal
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = { searchHistory.remove(term) },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Remove",
-                                        tint = TextMuted,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Quick Trending Search Pills when idle
-        if (searchQuery.isBlank()) {
-            item {
-                val trendingTags = listOf(
-                    "Kesariya", "Arijit Singh", "Diljit Dosanjh",
-                    "Tum Hi Ho", "Apna Bana Le", "Sidhu Moosewala",
-                    "Starboy", "Lo-Fi Chill", "Channa Mereya"
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    trendingTags.forEach { tag ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(Color(0x22151A2E))
-                                .border(1.dp, Color(0x3300F2FE), RoundedCornerShape(20.dp))
-                                .clickable {
-                                    searchQuery = tag
-                                    addToSearchHistory(tag)
-                                    showSuggestions = false
-                                }
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("🔥", fontSize = 11.sp)
-                                Spacer(modifier = Modifier.width(5.dp))
-                                Text(
-                                    text = tag,
-                                    fontSize = 12.sp,
-                                    color = TextPrimary,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         if (isSearching) {
             item {
@@ -528,35 +348,6 @@ fun SearchScreen(
             }
         }
 
-        // Music DNA Card
-        item {
-            GlassCard(
-                modifier = Modifier.fillMaxWidth(),
-                borderColor = NeonViolet.copy(alpha = 0.4f),
-                glowColor = NeonViolet
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "DESI & GLOBAL MUSIC DNA",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = NeonViolet,
-                            letterSpacing = 1.sp
-                        )
-                        NeonBadge(text = "SMART AI", color = NeonCyan)
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    DnaMetricRow(label = "Bollywood Melodic Romance", percentage = 0.85f, color = Color(0xFF2BC5B4))
-                    DnaMetricRow(label = "Punjabi Dholak Bass", percentage = 0.92f, color = Color(0xFFE72C30))
-                    DnaMetricRow(label = "Global Pop Energy", percentage = 0.78f, color = NeonCyan)
-                }
-            }
-        }
 
         // Search Results List
         item {
@@ -625,10 +416,7 @@ fun SearchScreen(
                     }
 
                     IconButton(
-                        onClick = {
-                            addToSearchHistory(song.title)
-                            onSongSelected(song)
-                        },
+                        onClick = { onSongSelected(song) },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -643,32 +431,5 @@ fun SearchScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun DnaMetricRow(
-    label: String,
-    percentage: Float,
-    color: Color
-) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(label, fontSize = 11.sp, color = TextSecondary)
-            Text("${(percentage * 100).toInt()}%", fontSize = 11.sp, color = color, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(3.dp))
-        LinearProgressIndicator(
-            progress = { percentage },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(CircleShape),
-            color = color,
-            trackColor = Color(0x33FFFFFF)
-        )
     }
 }

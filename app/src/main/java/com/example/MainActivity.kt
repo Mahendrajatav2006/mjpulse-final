@@ -37,15 +37,19 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -78,7 +82,6 @@ import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.PartyModeScreen
 import com.example.ui.screens.PlayerScreen
-import com.example.ui.screens.PlaylistScreen
 import com.example.ui.screens.SearchScreen
 import com.example.ui.theme.MjPulseTheme
 import com.example.ui.theme.NeonCyan
@@ -93,7 +96,6 @@ enum class PulseNavScreen {
     SEARCH,
     PARTY,
     DJ,
-    PLAYLIST,
     HISTORY,
     ARCH
 }
@@ -125,6 +127,7 @@ class MainActivity : ComponentActivity() {
 fun MainApp(audioPlayer: AudioPlayerManager) {
     var currentNavScreen by remember { mutableStateOf(PulseNavScreen.HOME) }
     var isPlayerExpanded by remember { mutableStateOf(false) }
+    var showUpdatePopup by remember { mutableStateOf(true) }
 
     val currentSong by audioPlayer.currentSong.collectAsState()
     val isPlaying by audioPlayer.isPlaying.collectAsState()
@@ -159,8 +162,7 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         },
                         onOpenPartyMode = { currentNavScreen = PulseNavScreen.PARTY },
                         onOpenDjMode = { currentNavScreen = PulseNavScreen.DJ },
-                        onOpenHistory = { currentNavScreen = PulseNavScreen.PLAYLIST },
-                        onOpenPlaylist = { currentNavScreen = PulseNavScreen.PLAYLIST },
+                        onOpenHistory = { currentNavScreen = PulseNavScreen.HISTORY },
                         onOpenPlayer = { isPlayerExpanded = true }
                     )
                 }
@@ -169,14 +171,6 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         onSongSelected = { song ->
                             audioPlayer.playSong(song)
                         }
-                    )
-                }
-                PulseNavScreen.PLAYLIST -> {
-                    PlaylistScreen(
-                        onSongSelected = { song ->
-                            audioPlayer.playSong(song)
-                        },
-                        onNavigateBack = { currentNavScreen = PulseNavScreen.HOME }
                     )
                 }
                 PulseNavScreen.HISTORY -> {
@@ -302,6 +296,66 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                     },
                     onClose = { isPlayerExpanded = false }
                 )
+            }
+        }
+
+        if (showUpdatePopup) {
+            AppUpdatePopup(onDismiss = { showUpdatePopup = false })
+        }
+    }
+}
+
+@Composable
+fun AppUpdatePopup(onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        GlassCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            borderColor = NeonCyan.copy(alpha = 0.5f),
+            glowColor = NeonCyan
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ElectricBolt,
+                    contentDescription = "Update",
+                    tint = NeonCyan,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "New Update Available!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "We have added new features and performance improvements. Update now to enjoy the latest version.",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Later", color = TextMuted)
+                    }
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = NeonCyan)
+                    ) {
+                        Text("Update Now", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -474,12 +528,12 @@ fun FloatingGlassNavBar(
                 tag = "nav_search"
             )
             NavItem(
-                icon = Icons.Default.QueueMusic,
-                label = "Playlists",
-                isSelected = currentScreen == PulseNavScreen.PLAYLIST,
-                selectedColor = NeonPink,
-                onClick = { onScreenSelected(PulseNavScreen.PLAYLIST) },
-                tag = "nav_playlists"
+                icon = Icons.Default.History,
+                label = "History",
+                isSelected = currentScreen == PulseNavScreen.HISTORY,
+                selectedColor = Color(0xFF00FF87),
+                onClick = { onScreenSelected(PulseNavScreen.HISTORY) },
+                tag = "nav_history"
             )
             NavItem(
                 icon = Icons.Default.ElectricBolt,

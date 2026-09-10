@@ -42,16 +42,44 @@ jobs:
         run: |
           ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
+      - name: Prepare APK Files
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/MJPulse-Music.apk
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MJPulse-Music-APK
-          path: music-app-main/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
+            music-app-main/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Create or Update GitHub Release
+      - name: Create or Update GitHub Release v1.2.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.0
+          name: "MJ PULSE Music v1.2.0 (Smart Recommendations & History)"
+          body: |
+            ### 🎵 MJ PULSE Music v1.2.0 Update Released!
+            
+            - **Smart Related Auto-Play**: Automatically queues matching songs by artist and genre (no random tracks).
+            - **Listening History Screen**: Dedicated history tab and home screen recently played carousel.
+            - **Party Mode Haptics**: 60fps haptic vibration sync with kick/snare beat clock.
+            - **Consistent Signature**: Signed with persistent keystore for seamless future in-place updates.
+            
+            **Direct Download Links**:
+            - [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/MJPulse-Music.apk)
+            - [Download app-debug.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/app-debug.apk)
+          files: |
+            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
+            music-app-main/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Update GitHub Release v1.0.0
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0
-          name: "MJ PULSE Music v1.0.0"
-          body: "Official Android APK for MJ PULSE Music"
-          files: music-app-main/app/build/outputs/apk/debug/app-debug.apk
+          name: "MJ PULSE Music v1.0.0 (Updated to v1.2.0)"
+          body: "Official Android APK for MJ PULSE Music v1.2.0"
+          files: |
+            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
+            music-app-main/app/build/outputs/apk/debug/app-debug.apk

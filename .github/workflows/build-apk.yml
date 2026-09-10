@@ -30,20 +30,6 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Sync Android Project Structure
-        run: |
-          # Ensure root has all gradle and project files
-          if [ -d "music-app-main" ]; then
-            cp -rn music-app-main/app . 2>/dev/null || true
-            cp -rn music-app-main/gradle . 2>/dev/null || true
-            cp -n music-app-main/*.gradle.kts . 2>/dev/null || true
-            cp -n music-app-main/gradle.properties . 2>/dev/null || true
-            cp -n music-app-main/debug.keystore . 2>/dev/null || true
-          fi
-          # Also ensure music-app-main has all current files
-          mkdir -p music-app-main
-          cp -rn app gradle *.gradle.kts gradle.properties debug.keystore music-app-main/ 2>/dev/null || true
-
       - name: Build Debug APK
         run: |
           # Try gradlew if present, or generate it, or use gradle command directly

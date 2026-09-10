@@ -106,9 +106,8 @@ export default function TopHeader({
   };
 
   const notifications = [
-    { id: 1, title: "Party Mode 2.0 Live", desc: "Broadcasted to 12.8K listeners", time: "10m ago" },
-    { id: 2, title: "High Concurrent Streamers", desc: "Active users reached 326", time: "1h ago" },
-    { id: 3, title: "New Song Added", desc: "Kesariya Sufi Soul indexed", time: "2h ago" },
+    { id: 1, title: "MJ PULSE v1.3.0 Ready", desc: "Dynamic genre streaming & 5-band EQ released", time: "Just now" },
+    { id: 2, title: "Lossless Audio Engine", desc: "Connected to high-bitrate streaming pipeline", time: "Active" },
   ];
 
   return (
@@ -123,7 +122,7 @@ export default function TopHeader({
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Global Search Bar (Image 3) */}
+        {/* Global Search Bar */}
         <div className="relative flex-1">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -132,7 +131,7 @@ export default function TopHeader({
               value={searchInput}
               onFocus={() => setShowHistoryDropdown(true)}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search songs, users, playlists, updates..."
+              placeholder="Search songs, artists, genres, lyrics..."
               className="w-full pl-10 pr-14 py-2 rounded-xl bg-[#111322] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 focus:border-[#6366F1] focus:outline-none transition shadow-inner"
             />
             {searchInput ? (
@@ -212,56 +211,54 @@ export default function TopHeader({
         </div>
       </div>
 
-      {/* Right Icons: Notification (8), Mail (2), Moon, User Profile (Image 3) */}
-      <div className="flex items-center space-x-3 sm:space-x-4 ml-4">
-        {/* Toggle Mode: Android App vs Dashboard vs Showcase */}
+      {/* Right Controls */}
+      <div className="flex items-center space-x-2.5 sm:space-x-3.5 ml-4">
+        {/* Quick Nav Switcher */}
         <div className="flex items-center bg-white/5 border border-white/10 p-0.5 rounded-xl text-xs">
           <button
             onClick={() => onSelectTab("android")}
-            className={`px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
               activeTab === "android"
                 ? "bg-gradient-to-r from-[#00F2FE] to-[#FF007F] text-black font-black shadow-lg shadow-[#00F2FE]/25"
                 : "text-white/70 hover:text-white"
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>Android App</span>
+            <span>App</span>
           </button>
           <button
-            onClick={() => onSelectTab("dashboard")}
-            className={`px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
-              activeTab === "dashboard"
-                ? "bg-[#6366F1] text-white font-bold shadow"
+            onClick={() => onSelectTab("music")}
+            className={`px-2.5 sm:px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "music"
+                ? "bg-purple-600 text-white font-bold shadow"
                 : "text-white/60 hover:text-white"
             }`}
           >
-            <LayoutDashboard className="w-3 h-3" />
-            <span className="hidden sm:inline">Dashboard</span>
+            <span>Stream</span>
           </button>
           <button
-            onClick={() => onSelectTab("showcase")}
-            className={`hidden md:flex px-3 py-1 rounded-lg transition items-center gap-1.5 ${
-              activeTab === "showcase"
-                ? "bg-white/20 text-white font-bold shadow"
+            onClick={() => onSelectTab("equalizer")}
+            className={`hidden md:flex px-2.5 sm:px-3 py-1 rounded-lg transition items-center gap-1.5 ${
+              activeTab === "equalizer"
+                ? "bg-pink-600 text-white font-bold shadow"
                 : "text-white/60 hover:text-white"
             }`}
           >
-            <Compass className="w-3 h-3" />
-            <span>Showcase</span>
+            <span>Equalizer</span>
           </button>
         </div>
 
         {/* Direct APK Download Button */}
         <a
           href="/api/download"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00F2FE]/20 to-[#FF007F]/20 border border-[#00F2FE]/40 text-[#00F2FE] hover:text-white font-bold text-xs hover:scale-105 active:scale-95 transition shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs hover:scale-105 active:scale-95 transition shadow-sm shadow-pink-500/20"
         >
-          <Download className="w-3.5 h-3.5 text-[#00F2FE]" />
-          <span className="hidden sm:inline">Download App</span>
+          <Download className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Download APK</span>
           <span className="sm:hidden text-[11px]">APK</span>
         </a>
 
-        {/* Notifications Icon with Red '8' Badge (Image 3) */}
+        {/* Notifications Icon */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -269,28 +266,24 @@ export default function TopHeader({
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#EF4444] text-white text-[9px] font-bold flex items-center justify-center">
-              8
-            </span>
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-pink-500"></span>
           </button>
 
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#0f111e] border border-white/15 p-3 shadow-2xl z-50 animate-in fade-in">
               <div className="flex items-center justify-between pb-2 border-b border-white/10 px-1">
-                <span className="text-xs font-bold text-white">Notifications</span>
-                <span className="text-[10px] text-[#00F2FE] cursor-pointer hover:underline">
-                  Mark all read
-                </span>
+                <span className="text-xs font-bold text-white">System Status</span>
+                <span className="text-[10px] text-pink-400 font-mono">Online</span>
               </div>
               <div className="space-y-2 pt-2">
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/5 transition cursor-pointer"
+                    className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/5 transition"
                   >
                     <p className="text-xs font-semibold text-white">{n.title}</p>
                     <p className="text-[10px] text-white/50">{n.desc}</p>
-                    <span className="text-[9px] text-[#00F2FE] font-mono mt-1 block">
+                    <span className="text-[9px] text-pink-400 font-mono mt-1 block">
                       {n.time}
                     </span>
                   </div>
@@ -300,19 +293,7 @@ export default function TopHeader({
           )}
         </div>
 
-        {/* Mail Icon with Red '2' Badge (Image 3) */}
-        <button
-          onClick={() => onSelectTab("announcements")}
-          className="relative p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white transition hidden sm:flex"
-          aria-label="Messages"
-        >
-          <Mail className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#EF4444] text-white text-[9px] font-bold flex items-center justify-center">
-            2
-          </span>
-        </button>
-
-        {/* Dark Mode Moon Icon (Image 3) */}
+        {/* Dark Mode Moon Icon */}
         <button
           onClick={() => setIsDark(!isDark)}
           className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white transition hidden sm:flex"
@@ -321,27 +302,18 @@ export default function TopHeader({
           {isDark ? <Moon className="w-4 h-4 text-white/70" /> : <Sun className="w-4 h-4 text-amber-400" />}
         </button>
 
-        {/* User Profile Badge (MJ Mahendra Admin - Image 3) -> Opens Settings */}
+        {/* User Profile Badge */}
         <div
           onClick={() => onSelectTab("settings")}
-          className="flex items-center space-x-2.5 pl-2 cursor-pointer group"
-          title="Click MJ Profile to Open Settings"
+          className="flex items-center space-x-2 pl-1 cursor-pointer group"
+          title="Open Settings"
           role="button"
           tabIndex={0}
         >
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00F2FE] via-[#8B5CF6] to-[#FF007F] p-0.5 group-hover:scale-105 transition shadow">
-              <div className="w-full h-full rounded-full bg-[#111322] flex items-center justify-center text-white group-hover:text-[#00F2FE] font-bold text-xs transition">
-                MJ
-              </div>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00F2FE] via-[#8B5CF6] to-[#FF007F] p-0.5 group-hover:scale-105 transition shadow">
+            <div className="w-full h-full rounded-full bg-[#111322] flex items-center justify-center text-white font-bold text-xs">
+              MJ
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#8B5CF6] border border-[#080911] flex items-center justify-center">
-              <Settings className="w-2 h-2 text-white group-hover:rotate-90 transition duration-300" />
-            </span>
-          </div>
-          <div className="hidden md:block text-left">
-            <p className="text-xs font-bold text-white group-hover:text-[#00F2FE] leading-none transition">Mahendra</p>
-            <p className="text-[10px] text-white/40 leading-none mt-1 group-hover:text-white/70 transition">Admin • Settings</p>
           </div>
         </div>
       </div>

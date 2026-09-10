@@ -1,6 +1,0 @@
-{
-  "name": "MJ PULSE",
-  "description": "Comprehensive music ecosystem featuring Next.js web player, Flutter mobile app, 3D Neon Glassmorphism audio player, and Firebase backend.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

@@ -20,7 +20,7 @@ import {
 
 export default function DownloadHubView() {
   const [copied, setCopied] = useState(false);
-  const downloadUrl = "https://github.com/Mahendrajatav2006/music-app/releases/latest/download/MJPulse-Music.apk";
+  const downloadUrl = typeof window !== "undefined" ? `${window.location.origin}/downloads/MJPulse-Music.apk` : "/downloads/MJPulse-Music.apk";
 
   const copyUrl = () => {
     navigator.clipboard?.writeText(downloadUrl);

@@ -11,9 +11,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: music-app-main
 
     steps:
       - name: Checkout Code
@@ -44,42 +41,55 @@ jobs:
 
       - name: Prepare APK Files
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/MJPulse-Music.apk
+          mkdir -p build-outputs
+          cp app/build/outputs/apk/debug/app-debug.apk build-outputs/MJPulse-Music.apk
+          cp app/build/outputs/apk/debug/app-debug.apk build-outputs/app-debug.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MJPulse-Music-APK
           path: |
-            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
-            music-app-main/app/build/outputs/apk/debug/app-debug.apk
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
 
-      - name: Create or Update GitHub Release v1.2.0
+      - name: Create or Update GitHub Release v1.3.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.3.0
+          name: "MJ PULSE Music v1.3.0 (Dynamic Genre Streaming & Equalizer)"
+          body: |
+            ### 🎵 MJ PULSE Music v1.3.0 Update Released!
+            
+            - **Dynamic Genre Switching**: Real-time high-fidelity streaming for Synthwave, EDM, Lo-Fi, Bass Boost, Punjabi Pop, and Trending Hits.
+            - **Studio 5-Band Equalizer**: Live audio frequency visualizer and customized soundstage curves.
+            - **Synced Karaoke Lyrics**: Dual-pane synced lyrics with live glow and auto-scroll.
+            - **DJ Decks Support**: Filter tracks directly by genre on virtual decks.
+            - **Consistent Keystore Signature**: Seamless in-place updates.
+            
+            **Direct Download Links**:
+            - [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.3.0/MJPulse-Music.apk)
+            - [Download app-debug.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.3.0/app-debug.apk)
+          files: |
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
+
+      - name: Update GitHub Release v1.2.0
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.2.0
-          name: "MJ PULSE Music v1.2.0 (Smart Recommendations & History)"
-          body: |
-            ### 🎵 MJ PULSE Music v1.2.0 Update Released!
-            
-            - **Smart Related Auto-Play**: Automatically queues matching songs by artist and genre (no random tracks).
-            - **Listening History Screen**: Dedicated history tab and home screen recently played carousel.
-            - **Party Mode Haptics**: 60fps haptic vibration sync with kick/snare beat clock.
-            - **Consistent Signature**: Signed with persistent keystore for seamless future in-place updates.
-            
-            **Direct Download Links**:
-            - [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/MJPulse-Music.apk)
-            - [Download app-debug.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/app-debug.apk)
+          name: "MJ PULSE Music v1.2.0 (Updated to v1.3.0)"
+          body: "Official Android APK for MJ PULSE Music v1.3.0"
           files: |
-            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
-            music-app-main/app/build/outputs/apk/debug/app-debug.apk
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
 
       - name: Update GitHub Release v1.0.0
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0
-          name: "MJ PULSE Music v1.0.0 (Updated to v1.2.0)"
-          body: "Official Android APK for MJ PULSE Music v1.2.0"
+          name: "MJ PULSE Music v1.0.0 (Updated to v1.3.0)"
+          body: "Official Android APK for MJ PULSE Music v1.3.0"
           files: |
-            music-app-main/app/build/outputs/apk/debug/MJPulse-Music.apk
-            music-app-main/app/build/outputs/apk/debug/app-debug.apk
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk

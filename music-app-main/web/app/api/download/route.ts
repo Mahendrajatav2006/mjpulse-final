@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  // Direct download URL for local static APK on the same origin
-  const url = new URL("/downloads/MJPulse-Music.apk", request.url);
-  return NextResponse.redirect(url, { status: 307 });
+  // Redirect directly to the official GitHub Release APK
+  // Ensures fastest download speeds and latest build
+  const directApkUrl = "https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/MJPulse-Music.apk";
+  return NextResponse.redirect(directApkUrl, { status: 302 });
 }
-

@@ -134,8 +134,7 @@ export default function ShowcaseView({
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
-                href="/downloads/MJPulse-Music.apk"
-                download="MJPulse-Music.apk"
+                href="/api/download"
                 className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#00F2FE] to-[#00c6ff] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#00F2FE]/30 hover:scale-105 active:scale-95 transition flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />

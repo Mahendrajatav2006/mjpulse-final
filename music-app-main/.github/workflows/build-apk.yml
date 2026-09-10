@@ -39,6 +39,7 @@ jobs:
         run: |
           mkdir -p release_apk
           cp app/build/outputs/apk/debug/app-debug.apk release_apk/MJPulse-Music.apk
+          cp app/build/outputs/apk/debug/app-debug.apk release_apk/app-debug.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -50,18 +51,23 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.0
-          name: "MJ PULSE Music v1.0.0 (Official Release)"
+          tag_name: v1.2.0
+          name: "MJ PULSE Music v1.2.0 (Smart Recommendations & History)"
           body: |
-            ### 🎵 Welcome to MJ PULSE Music!
+            ### 🎵 MJ PULSE Music v1.2.0 Update Released!
             
-            Download the official Android APK below to install on your phone:
+            Download and install the official Android APK update below:
             
-            - **Direct Download**: Click `MJPulse-Music.apk` below
-            - **High-Fidelity Audio**: Crystal clear music streaming
-            - **Clean Experience**: Ad-free, no third-party branding
+            - **Smart Related Auto-Play**: Automatically queues matching songs by artist and genre (no random tracks).
+            - **Listening History Screen**: Dedicated history tab and home screen recently played carousel.
+            - **Party Mode Haptics**: 60fps haptic vibration sync with kick/snare beat clock.
+            - **Consistent Signature**: Signed with persistent keystore for seamless in-place updates.
             
-            *Enjoy the music!*
+            **Direct Download Links**:
+            - [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/MJPulse-Music.apk)
+            - [Download app-debug.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.2.0/app-debug.apk)
           draft: false
           prerelease: false
-          files: release_apk/MJPulse-Music.apk
+          files: |
+            release_apk/MJPulse-Music.apk
+            release_apk/app-debug.apk

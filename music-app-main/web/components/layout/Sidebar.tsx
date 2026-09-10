@@ -182,8 +182,7 @@ export default function Sidebar({
 
             {/* Download APK Link */}
             <a
-              href="/downloads/MJPulse-Music.apk"
-              download="MJPulse-Music.apk"
+              href="/api/download"
               className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-gradient-to-r from-[#00F2FE]/20 to-[#FF007F]/20 hover:from-[#00F2FE]/30 hover:to-[#FF007F]/30 border border-[#00F2FE]/40 text-[#00F2FE] hover:text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
             >
               <Download className="w-3 h-3 text-[#00F2FE]" />

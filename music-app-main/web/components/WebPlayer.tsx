@@ -12,6 +12,7 @@ import AnnouncementsView from "./announcements/AnnouncementsView";
 import FeatureControlView from "./features/FeatureControlView";
 import SettingsView from "./settings/SettingsView";
 import UsersView from "./users/UsersView";
+import AndroidSimulatorView from "./android/AndroidSimulatorView";
 import BottomPlayer from "./player/BottomPlayer";
 import HiddenPlayerEngine from "./player/HiddenPlayerEngine";
 import UploadSongModal from "./modals/UploadSongModal";
@@ -22,7 +23,7 @@ import { useMusicPlayer } from "../hooks/useMusicPlayer";
 import { Track, NavTab, AppUpdateItem, AnnouncementItem, PlaylistItem } from "../types/music";
 
 export default function WebPlayer() {
-  const [activeTab, setActiveTab] = useState<NavTab>("dashboard");
+  const [activeTab, setActiveTab] = useState<NavTab>("android");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
@@ -198,6 +199,21 @@ export default function WebPlayer() {
 
         {/* Dynamic Tab Content */}
         <div className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+          {activeTab === "android" && (
+            <AndroidSimulatorView
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onPlaySong={playTrack}
+              onTogglePlayPause={togglePlayPause}
+              currentTime={currentTime}
+              duration={duration}
+              onSeekTo={seekTo}
+              onNextTrack={nextTrack}
+              onPrevTrack={prevTrack}
+              tracks={tracks}
+            />
+          )}
+
           {activeTab === "dashboard" && (
             <OverviewView
               onOpenUploadSong={() => setIsUploadOpen(true)}

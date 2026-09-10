@@ -2,6 +2,12 @@ import { NextRequest } from "next/server";
 import { firebaseService } from "../../../services/firebase.service";
 import { handleApiError } from "../../../lib/errorHandler";
 
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  return Response.json({ success: true, message: "Auth route active" });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

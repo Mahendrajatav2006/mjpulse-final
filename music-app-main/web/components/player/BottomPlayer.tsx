@@ -14,6 +14,8 @@ import {
   Maximize2,
   ListMusic,
   BarChart2,
+  Download,
+  CheckCircle2,
 } from "lucide-react";
 import { Track } from "../../types/music";
 
@@ -54,13 +56,14 @@ export default function BottomPlayer({
   onToggleMute,
 }: BottomPlayerProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 h-22 sm:h-24 backdrop-blur-2xl bg-[#080911]/95 border-t border-white/10 px-4 sm:px-8 flex items-center justify-between z-50 shadow-2xl">
-      {/* Left: Song Metadata & Favorite */}
-      <div className="flex items-center space-x-3 w-1/4 min-w-[180px]">
+      {/* Left: Song Metadata & Favorite / Offline Download */}
+      <div className="flex items-center space-x-3 w-1/4 min-w-[210px]">
         {currentTrack ? (
           <>
             <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border border-white/15 shadow-lg group">
@@ -76,24 +79,46 @@ export default function BottomPlayer({
               )}
             </div>
 
-            <div className="overflow-hidden">
+            <div className="overflow-hidden flex-1">
               <p className="text-xs sm:text-sm font-bold text-white truncate hover:text-[#00F2FE] transition cursor-pointer">
                 {currentTrack.title}
               </p>
               <p className="text-[10px] sm:text-xs text-white/50 truncate">{currentTrack.artist}</p>
             </div>
 
-            <button
-              onClick={() => setIsFavorite(!isFavorite)}
-              className="text-white/40 hover:text-[#FF007F] transition flex-shrink-0 p-1"
-              aria-label="Favorite"
-            >
-              <Heart
-                className={`w-4 h-4 ${
-                  isFavorite ? "text-[#FF007F] fill-current" : ""
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              {/* Offline Download Logo */}
+              <button
+                onClick={() => setIsDownloaded(!isDownloaded)}
+                className={`transition p-1.5 rounded-full cursor-pointer ${
+                  isDownloaded
+                    ? "text-emerald-400 bg-emerald-500/20"
+                    : "text-white/40 hover:text-white hover:bg-white/10"
                 }`}
-              />
-            </button>
+                title={isDownloaded ? "Downloaded for offline playback" : "Download offline (Lossless 320kbps)"}
+                aria-label="Offline Download"
+              >
+                {isDownloaded ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+              </button>
+
+              {/* Favorite */}
+              <button
+                onClick={() => setIsFavorite(!isFavorite)}
+                className="text-white/40 hover:text-[#FF007F] transition p-1.5 rounded-full hover:bg-white/10 cursor-pointer"
+                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                aria-label="Favorite"
+              >
+                <Heart
+                  className={`w-4 h-4 transition ${
+                    isFavorite ? "text-[#FF007F] fill-current scale-110" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </>
         ) : (
           <div className="text-xs text-white/40 italic flex items-center gap-2">

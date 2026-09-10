@@ -97,6 +97,21 @@ export class SaavnService {
       return [];
     }
   }
+
+  async getStreamUrlForQuery(query: string): Promise<string | null> {
+    if (!query || !query.trim()) return null;
+    try {
+      const tracks = await this.searchTracks(query.trim(), 5);
+      for (const t of tracks) {
+        if (t.streamUrl && t.streamUrl.startsWith("http")) {
+          return t.streamUrl;
+        }
+      }
+    } catch (e) {
+      console.error("[SaavnService] getStreamUrlForQuery error:", e);
+    }
+    return null;
+  }
 }
 
 export const saavnService = new SaavnService();

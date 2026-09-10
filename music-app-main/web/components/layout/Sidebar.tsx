@@ -20,6 +20,7 @@ import {
   Headphones,
   Music,
   Download,
+  Smartphone,
 } from "lucide-react";
 import { NavTab } from "../../types/music";
 
@@ -39,6 +40,7 @@ export default function Sidebar({
   onOpenAppPreview,
 }: SidebarProps) {
   const navItems = [
+    { id: "android", label: "Android App (Mobile)", icon: Smartphone, badge: "Mobile" },
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "music", label: "Music Library", icon: Music2 },
     { id: "playlists", label: "Playlists", icon: ListMusic },

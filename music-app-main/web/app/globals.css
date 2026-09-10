@@ -75,3 +75,81 @@ body {
 .animate-spin-slow {
   animation: spin-slow 20s linear infinite;
 }
+
+@keyframes lyric-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes lyric-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lyric-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 0, 127, 0.45));
+  }
+}
+
+.animate-lyric-slide {
+  animation: lyric-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-lyric-gradient {
+  background-size: 200% 200%;
+  animation: lyric-shimmer 3s ease infinite, lyric-glow-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes eq-bounce-1 {
+  0%, 100% { height: 22%; }
+  50% { height: 96%; }
+}
+
+@keyframes eq-bounce-2 {
+  0%, 100% { height: 88%; }
+  50% { height: 28%; }
+}
+
+@keyframes eq-bounce-3 {
+  0%, 100% { height: 32%; }
+  35% { height: 100%; }
+  75% { height: 45%; }
+}
+
+@keyframes eq-bounce-4 {
+  0%, 100% { height: 75%; }
+  35% { height: 18%; }
+  75% { height: 92%; }
+}
+
+@keyframes eq-bounce-5 {
+  0%, 100% { height: 18%; }
+  30% { height: 60%; }
+  60% { height: 25%; }
+  85% { height: 85%; }
+}
+
+@keyframes eq-bounce-6 {
+  0%, 100% { height: 50%; }
+  30% { height: 92%; }
+  60% { height: 32%; }
+  85% { height: 78%; }
+}
+

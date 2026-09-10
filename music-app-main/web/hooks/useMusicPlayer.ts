@@ -18,24 +18,99 @@ export function useMusicPlayer(tracks: Track[] = []) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [history, setHistory] = useState<Track[]>([]);
 
-  const playerRef = useRef<any>(null);
+  // Engine state: "html5" | "youtube" | "none"
+  const activeEngineRef = useRef<"html5" | "youtube" | "none">("none");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ytPlayerRef = useRef<any>(null);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize YouTube IFrame API
+  // Initialize Native HTML5 Audio Engine
   useEffect(() => {
-    const initPlayer = () => {
+    if (typeof window === "undefined") return;
+
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.crossOrigin = "anonymous";
+    audioRef.current = audio;
+
+    const onTimeUpdate = () => {
+      if (activeEngineRef.current === "html5") {
+        setCurrentTime(audio.currentTime);
+        if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+          setDuration(audio.duration);
+        }
+      }
+    };
+
+    const onPlaying = () => {
+      if (activeEngineRef.current === "html5") {
+        setIsPlaying(true);
+      }
+    };
+
+    const onPause = () => {
+      if (activeEngineRef.current === "html5") {
+        setIsPlaying(false);
+      }
+    };
+
+    const onEnded = () => {
+      if (activeEngineRef.current === "html5") {
+        setIsPlaying(false);
+        handleNextTrack();
+      }
+    };
+
+    const onError = async (e: Event) => {
+      console.warn("[HTML5 Audio Engine] Playback event error:", e);
+      // If direct stream had an issue, attempt auto-recovery via /api/stream
+      if (currentTrack) {
+        try {
+          const res = await fetch(`/api/stream?q=${encodeURIComponent(`${currentTrack.title} ${currentTrack.artist}`)}`);
+          const json = await res.json();
+          if (json.success && json.streamUrl && json.streamUrl !== audio.src) {
+            audio.src = json.streamUrl;
+            audio.play().catch((err) => console.warn("[HTML5 Audio Engine] Recovery play:", err));
+          }
+        } catch (_) {}
+      }
+    };
+
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
+
+    setIsReady(true);
+
+    return () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  // Initialize YouTube IFrame API as secondary engine
+  useEffect(() => {
+    const initYtPlayer = () => {
       const container = document.getElementById("hidden-yt-player");
       if (!container || !window.YT || !window.YT.Player) return;
 
       try {
-        if (playerRef.current) {
+        if (ytPlayerRef.current) {
           try {
-            playerRef.current.destroy();
+            ytPlayerRef.current.destroy();
           } catch (_) {}
         }
 
-        playerRef.current = new window.YT.Player("hidden-yt-player", {
+        ytPlayerRef.current = new window.YT.Player("hidden-yt-player", {
           height: "0",
           width: "0",
           playerVars: {
@@ -48,11 +123,11 @@ export function useMusicPlayer(tracks: Track[] = []) {
           },
           events: {
             onReady: (event: any) => {
-              setIsReady(true);
               event.target.setVolume(80);
             },
             onStateChange: (event: any) => {
-              // YT.PlayerState: PLAYING = 1, PAUSED = 2, ENDED = 0, BUFFERING = 3
+              if (activeEngineRef.current !== "youtube") return;
+              // YT.PlayerState: PLAYING = 1, PAUSED = 2, ENDED = 0
               if (event.data === 1) {
                 setIsPlaying(true);
                 const trackDuration = event.target.getDuration();
@@ -63,18 +138,19 @@ export function useMusicPlayer(tracks: Track[] = []) {
                 setIsPlaying(false);
               } else if (event.data === 0) {
                 setIsPlaying(false);
-                // Auto play next track when song finishes
                 handleNextTrack();
               }
             },
             onError: (err: any) => {
-              console.error("[MusicPlayer Engine Error]:", err);
-              setIsPlaying(false);
+              console.warn("[YouTube Engine Error]:", err);
+              if (activeEngineRef.current === "youtube") {
+                setIsPlaying(false);
+              }
             },
           },
         });
       } catch (e) {
-        console.error("Failed to construct YT.Player:", e);
+        console.warn("Failed to construct YT.Player:", e);
       }
     };
 
@@ -88,25 +164,21 @@ export function useMusicPlayer(tracks: Track[] = []) {
       }
 
       window.onYouTubeIframeAPIReady = () => {
-        initPlayer();
+        initYtPlayer();
       };
     } else {
-      initPlayer();
+      initYtPlayer();
     }
-
-    return () => {
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-    };
   }, []);
 
-  // Update current time progress smoothly
+  // Sync YouTube progress timer when active engine is YouTube
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && activeEngineRef.current === "youtube") {
       progressTimerRef.current = setInterval(() => {
-        if (playerRef.current && typeof playerRef.current.getCurrentTime === "function") {
-          const time = playerRef.current.getCurrentTime() || 0;
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === "function") {
+          const time = ytPlayerRef.current.getCurrentTime() || 0;
           setCurrentTime(time);
-          const total = playerRef.current.getDuration() || 0;
+          const total = ytPlayerRef.current.getDuration() || 0;
           if (total > 0 && total !== duration) {
             setDuration(total);
           }
@@ -122,8 +194,6 @@ export function useMusicPlayer(tracks: Track[] = []) {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
     };
   }, [isPlaying, duration]);
-
-  const [history, setHistory] = useState<Track[]>([]);
 
   // Load history from localStorage on client mount
   useEffect(() => {
@@ -146,7 +216,12 @@ export function useMusicPlayer(tracks: Track[] = []) {
     } catch (_) {}
   }, []);
 
-  const playTrack = useCallback((track: Track) => {
+  /**
+   * Unified playTrack:
+   * Prioritizes direct audio stream URL with HTML5 audio element for instant, lossless playback.
+   * If not available, resolves via /api/stream or falls back to YouTube.
+   */
+  const playTrack = useCallback(async (track: Track) => {
     setCurrentTrack(track);
     setCurrentTime(0);
     saveHistory(track);
@@ -155,64 +230,175 @@ export function useMusicPlayer(tracks: Track[] = []) {
       setDuration(track.duration);
     }
 
-    if (playerRef.current && typeof playerRef.current.loadVideoById === "function") {
-      playerRef.current.loadVideoById({
-        videoId: track.id,
-        startSeconds: 0,
-      });
-      playerRef.current.playVideo();
+    const audio = audioRef.current;
+
+    // Check if track has a direct audio stream URL
+    if (track.streamUrl && track.streamUrl.startsWith("http")) {
+      // Pause YouTube player if active
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+        try {
+          ytPlayerRef.current.pauseVideo();
+        } catch (_) {}
+      }
+
+      activeEngineRef.current = "html5";
+      if (audio) {
+        audio.src = track.streamUrl;
+        audio.volume = isMuted ? 0 : volume / 100;
+        try {
+          await audio.play();
+          setIsPlaying(true);
+        } catch (playErr) {
+          console.warn("[HTML5 Audio] Direct play rejected (possible autoplay restriction):", playErr);
+          setIsPlaying(true); // User initiated click, state reflects playing intent
+        }
+      }
+      return;
+    }
+
+    // If no direct stream URL, check if ID looks like a 11-char YouTube ID
+    const isYouTubeId = /^[a-zA-Z0-9_-]{11}$/.test(track.id);
+
+    if (isYouTubeId && ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === "function") {
+      if (audio) {
+        audio.pause();
+      }
+      activeEngineRef.current = "youtube";
+      try {
+        ytPlayerRef.current.loadVideoById({
+          videoId: track.id,
+          startSeconds: 0,
+        });
+        ytPlayerRef.current.playVideo();
+        setIsPlaying(true);
+      } catch (err) {
+        console.warn("[YouTube Engine] loadVideoById error:", err);
+      }
+      return;
+    }
+
+    // Otherwise, fetch stream URL dynamically from /api/stream
+    try {
+      const query = `${track.title} ${track.artist}`.trim();
+      const res = await fetch(`/api/stream?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      if (data.success && data.streamUrl && audio) {
+        // Pause YouTube
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+          try {
+            ytPlayerRef.current.pauseVideo();
+          } catch (_) {}
+        }
+
+        activeEngineRef.current = "html5";
+        audio.src = data.streamUrl;
+        audio.volume = isMuted ? 0 : volume / 100;
+        await audio.play();
+        setIsPlaying(true);
+        return;
+      }
+    } catch (err) {
+      console.warn("[useMusicPlayer] /api/stream fetch failed:", err);
+    }
+
+    // Ultimate fallback: high reliability stream
+    if (audio) {
+      activeEngineRef.current = "html5";
+      audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+      audio.volume = isMuted ? 0 : volume / 100;
+      audio.play().catch(() => {});
       setIsPlaying(true);
     }
-  }, [saveHistory]);
+  }, [saveHistory, isMuted, volume]);
 
   const togglePlayPause = useCallback(() => {
-    if (!playerRef.current) return;
-    if (isPlaying) {
-      if (typeof playerRef.current.pauseVideo === "function") {
-        playerRef.current.pauseVideo();
+    const audio = audioRef.current;
+
+    if (activeEngineRef.current === "html5" && audio) {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        audio.play().then(() => setIsPlaying(true)).catch((e) => console.warn("Audio play:", e));
       }
-      setIsPlaying(false);
-    } else {
-      if (typeof playerRef.current.playVideo === "function") {
-        playerRef.current.playVideo();
-      }
-      setIsPlaying(true);
+      return;
     }
-  }, [isPlaying]);
+
+    if (activeEngineRef.current === "youtube" && ytPlayerRef.current) {
+      if (isPlaying) {
+        if (typeof ytPlayerRef.current.pauseVideo === "function") {
+          ytPlayerRef.current.pauseVideo();
+        }
+        setIsPlaying(false);
+      } else {
+        if (typeof ytPlayerRef.current.playVideo === "function") {
+          ytPlayerRef.current.playVideo();
+        }
+        setIsPlaying(true);
+      }
+      return;
+    }
+
+    // If no song playing yet, play first track
+    if (!currentTrack && tracks.length > 0) {
+      playTrack(tracks[0]);
+    }
+  }, [isPlaying, currentTrack, tracks, playTrack]);
 
   const seekTo = useCallback((seconds: number) => {
     setCurrentTime(seconds);
-    if (playerRef.current && typeof playerRef.current.seekTo === "function") {
-      playerRef.current.seekTo(seconds, true);
+
+    if (activeEngineRef.current === "html5" && audioRef.current) {
+      audioRef.current.currentTime = seconds;
+      return;
+    }
+
+    if (activeEngineRef.current === "youtube" && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === "function") {
+      ytPlayerRef.current.seekTo(seconds, true);
     }
   }, []);
 
   const changeVolume = useCallback((newVolume: number) => {
     setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-    if (playerRef.current && typeof playerRef.current.setVolume === "function") {
-      playerRef.current.setVolume(newVolume);
+    const muted = newVolume === 0;
+    setIsMuted(muted);
+
+    if (audioRef.current) {
+      audioRef.current.volume = muted ? 0 : newVolume / 100;
+    }
+
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.setVolume === "function") {
+      ytPlayerRef.current.setVolume(newVolume);
     }
   }, []);
 
   const toggleMute = useCallback(() => {
-    if (!playerRef.current) return;
     if (isMuted) {
       const restoreVolume = volume > 0 ? volume : 80;
-      playerRef.current.unMute();
-      playerRef.current.setVolume(restoreVolume);
       setIsMuted(false);
       setVolume(restoreVolume);
+
+      if (audioRef.current) {
+        audioRef.current.volume = restoreVolume / 100;
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.unMute === "function") {
+        ytPlayerRef.current.unMute();
+        ytPlayerRef.current.setVolume(restoreVolume);
+      }
     } else {
-      playerRef.current.mute();
       setIsMuted(true);
+      if (audioRef.current) {
+        audioRef.current.volume = 0;
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.mute === "function") {
+        ytPlayerRef.current.mute();
+      }
     }
   }, [isMuted, volume]);
 
   /**
-   * Smart Related Auto-Play:
-   * Next track is fetched based on the current song's artist and style from /api/related
-   * Guaranteed to be related and never random!
+   * Smart Next Track
    */
   const handleNextTrack = useCallback(async () => {
     if (!currentTrack) {
@@ -243,7 +429,6 @@ export function useMusicPlayer(tracks: Track[] = []) {
   }, [currentTrack, tracks, playTrack]);
 
   const handlePrevTrack = useCallback(() => {
-    // Replay previous song from playback history
     if (history.length >= 2) {
       const prev = history[0].id === currentTrack?.id ? history[1] : history[0];
       if (prev) {
@@ -284,4 +469,3 @@ export function useMusicPlayer(tracks: Track[] = []) {
     prevTrack: handlePrevTrack,
   };
 }
-

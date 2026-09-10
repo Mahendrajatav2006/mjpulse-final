@@ -30,37 +30,43 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Detect and Prepare Project Root
-        id: prep
+      - name: Sync Android Project Structure
         run: |
-          if [ -f "music-app-main/settings.gradle.kts" ]; then
-            echo "BUILD_DIR=music-app-main" >> $GITHUB_ENV
-            echo "Detected music-app-main directory as Android root"
-          else
-            echo "BUILD_DIR=." >> $GITHUB_ENV
-            echo "Using current workspace root as Android root"
+          # Ensure root has all gradle and project files
+          if [ -d "music-app-main" ]; then
+            cp -rn music-app-main/app . 2>/dev/null || true
+            cp -rn music-app-main/gradle . 2>/dev/null || true
+            cp -n music-app-main/*.gradle.kts . 2>/dev/null || true
+            cp -n music-app-main/gradle.properties . 2>/dev/null || true
+            cp -n music-app-main/debug.keystore . 2>/dev/null || true
           fi
-
-      - name: Generate Gradle Wrapper
-        run: |
-          cd $BUILD_DIR
-          gradle wrapper --gradle-version 9.3.1
-          chmod +x gradlew
+          # Also ensure music-app-main has all current files
+          mkdir -p music-app-main
+          cp -rn app gradle *.gradle.kts gradle.properties debug.keystore music-app-main/ 2>/dev/null || true
 
       - name: Build Debug APK
         run: |
-          cd $BUILD_DIR
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          # Try gradlew if present, or generate it, or use gradle command directly
+          gradle wrapper --gradle-version 9.3.1 || true
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          else
+            gradle :app:assembleDebug --no-daemon --stacktrace
+          fi
 
       - name: Prepare APK Files
         run: |
           mkdir -p build-outputs
-          if [ -f "$BUILD_DIR/app/build/outputs/apk/debug/app-debug.apk" ]; then
-            cp $BUILD_DIR/app/build/outputs/apk/debug/app-debug.apk build-outputs/MJPulse-Music.apk
-            cp $BUILD_DIR/app/build/outputs/apk/debug/app-debug.apk build-outputs/app-debug.apk
-          elif [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
-            cp app/build/outputs/apk/debug/app-debug.apk build-outputs/MJPulse-Music.apk
-            cp app/build/outputs/apk/debug/app-debug.apk build-outputs/app-debug.apk
+          APK_FILE=$(find . -path "*/build/outputs/apk/debug/*" -name "*.apk" | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            echo "Found generated APK at: $APK_FILE"
+            cp "$APK_FILE" build-outputs/MJPulse-Music.apk
+            cp "$APK_FILE" build-outputs/app-debug.apk
+            ls -la build-outputs/
+          else
+            echo "ERROR: No APK was generated in the build outputs!"
+            exit 1
           fi
 
       - name: Upload APK Artifact

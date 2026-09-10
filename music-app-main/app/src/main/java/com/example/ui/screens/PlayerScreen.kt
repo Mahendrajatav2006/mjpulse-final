@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileDownloadDone
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -158,15 +160,30 @@ fun PlayerScreen(
                     )
                 }
 
-                IconButton(
-                    onClick = { isFavorite = !isFavorite },
-                    modifier = Modifier.testTag("player_fav_btn")
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (isFavorite) NeonPink else TextSecondary
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    var isDownloaded by remember { mutableStateOf(false) }
+
+                    IconButton(
+                        onClick = { isDownloaded = !isDownloaded },
+                        modifier = Modifier.testTag("player_download_btn")
+                    ) {
+                        Icon(
+                            imageVector = if (isDownloaded) Icons.Default.FileDownloadDone else Icons.Default.FileDownload,
+                            contentDescription = if (isDownloaded) "Offline Ready" else "Download Offline",
+                            tint = if (isDownloaded) NeonCyan else TextSecondary
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { isFavorite = !isFavorite },
+                        modifier = Modifier.testTag("player_fav_btn")
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite) NeonPink else TextSecondary
+                        )
+                    }
                 }
             }
 
@@ -223,8 +240,7 @@ fun PlayerScreen(
             ) {
                 GlassCard(
                     modifier = Modifier.weight(1f),
-                    borderColor = if (isSpatialAudio) NeonCyan else Color(0x33FFFFFF),
-                    onClick = onToggleSpatialAudio
+                    borderColor = NeonCyan.copy(alpha = 0.5f)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -232,15 +248,15 @@ fun PlayerScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.SpatialAudio,
+                            imageVector = Icons.Default.SurroundSound,
                             contentDescription = null,
-                            tint = if (isSpatialAudio) NeonCyan else TextMuted,
+                            tint = NeonCyan,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = if (isSpatialAudio) "Spatial 360 ON" else "Spatial OFF",
+                            text = "320kbps Lossless",
                             fontSize = 11.sp,
-                            color = if (isSpatialAudio) NeonCyan else TextMuted,
+                            color = NeonCyan,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -256,13 +272,13 @@ fun PlayerScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.SurroundSound,
+                            imageVector = Icons.Default.ElectricBolt,
                             contentDescription = null,
                             tint = NeonGreen,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = song.codec.split("•").firstOrNull()?.trim() ?: "Hi-Res",
+                            text = song.codec.split("•").firstOrNull()?.trim() ?: "Hi-Res Master",
                             fontSize = 11.sp,
                             color = NeonGreen,
                             fontWeight = FontWeight.SemiBold

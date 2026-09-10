@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Tune
@@ -77,6 +78,7 @@ import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.PartyModeScreen
 import com.example.ui.screens.PlayerScreen
+import com.example.ui.screens.PlaylistScreen
 import com.example.ui.screens.SearchScreen
 import com.example.ui.theme.MjPulseTheme
 import com.example.ui.theme.NeonCyan
@@ -91,6 +93,7 @@ enum class PulseNavScreen {
     SEARCH,
     PARTY,
     DJ,
+    PLAYLIST,
     HISTORY,
     ARCH
 }
@@ -156,7 +159,8 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         },
                         onOpenPartyMode = { currentNavScreen = PulseNavScreen.PARTY },
                         onOpenDjMode = { currentNavScreen = PulseNavScreen.DJ },
-                        onOpenHistory = { currentNavScreen = PulseNavScreen.HISTORY },
+                        onOpenHistory = { currentNavScreen = PulseNavScreen.PLAYLIST },
+                        onOpenPlaylist = { currentNavScreen = PulseNavScreen.PLAYLIST },
                         onOpenPlayer = { isPlayerExpanded = true }
                     )
                 }
@@ -165,6 +169,14 @@ fun MainApp(audioPlayer: AudioPlayerManager) {
                         onSongSelected = { song ->
                             audioPlayer.playSong(song)
                         }
+                    )
+                }
+                PulseNavScreen.PLAYLIST -> {
+                    PlaylistScreen(
+                        onSongSelected = { song ->
+                            audioPlayer.playSong(song)
+                        },
+                        onNavigateBack = { currentNavScreen = PulseNavScreen.HOME }
                     )
                 }
                 PulseNavScreen.HISTORY -> {
@@ -462,12 +474,12 @@ fun FloatingGlassNavBar(
                 tag = "nav_search"
             )
             NavItem(
-                icon = Icons.Default.History,
-                label = "History",
-                isSelected = currentScreen == PulseNavScreen.HISTORY,
-                selectedColor = Color(0xFF00FF87),
-                onClick = { onScreenSelected(PulseNavScreen.HISTORY) },
-                tag = "nav_history"
+                icon = Icons.Default.QueueMusic,
+                label = "Playlists",
+                isSelected = currentScreen == PulseNavScreen.PLAYLIST,
+                selectedColor = NeonPink,
+                onClick = { onScreenSelected(PulseNavScreen.PLAYLIST) },
+                tag = "nav_playlists"
             )
             NavItem(
                 icon = Icons.Default.ElectricBolt,

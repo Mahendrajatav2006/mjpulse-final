@@ -1,0 +1,119 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Sync Android Project Structure
+        run: |
+          # Ensure root has all gradle and project files
+          if [ -d "music-app-main" ]; then
+            cp -rn music-app-main/app . 2>/dev/null || true
+            cp -rn music-app-main/gradle . 2>/dev/null || true
+            cp -n music-app-main/*.gradle.kts . 2>/dev/null || true
+            cp -n music-app-main/gradle.properties . 2>/dev/null || true
+            cp -n music-app-main/debug.keystore . 2>/dev/null || true
+          fi
+          # Also ensure music-app-main has all current files
+          mkdir -p music-app-main
+          cp -rn app gradle *.gradle.kts gradle.properties debug.keystore music-app-main/ 2>/dev/null || true
+
+      - name: Build Debug APK
+        run: |
+          # Try gradlew if present, or generate it, or use gradle command directly
+          gradle wrapper --gradle-version 9.3.1 || true
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          else
+            gradle :app:assembleDebug --no-daemon --stacktrace
+          fi
+
+      - name: Prepare APK Files
+        run: |
+          mkdir -p build-outputs
+          APK_FILE=$(find . -path "*/build/outputs/apk/debug/*" -name "*.apk" | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            echo "Found generated APK at: $APK_FILE"
+            cp "$APK_FILE" build-outputs/MJPulse-Music.apk
+            cp "$APK_FILE" build-outputs/app-debug.apk
+            ls -la build-outputs/
+          else
+            echo "ERROR: No APK was generated in the build outputs!"
+            exit 1
+          fi
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MJPulse-Music-APK
+          path: |
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
+
+      - name: Create or Update GitHub Release v1.3.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.3.0
+          name: "MJ PULSE Music v1.3.0 (Dynamic Genre Streaming & Equalizer)"
+          body: |
+            ### 🎵 MJ PULSE Music v1.3.0 Update Released!
+            
+            - **Dynamic Genre Switching**: Real-time high-fidelity streaming for Synthwave, EDM, Lo-Fi, Bass Boost, Punjabi Pop, and Trending Hits.
+            - **Studio 5-Band Equalizer**: Live audio frequency visualizer and customized soundstage curves.
+            - **Synced Karaoke Lyrics**: Dual-pane synced lyrics with live glow and auto-scroll.
+            - **DJ Decks Support**: Filter tracks directly by genre on virtual decks.
+            - **Consistent Keystore Signature**: Seamless in-place updates.
+            
+            **Direct Download Links**:
+            - [Download MJPulse-Music.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.3.0/MJPulse-Music.apk)
+            - [Download app-debug.apk](https://github.com/Mahendrajatav2006/music-app/releases/download/v1.3.0/app-debug.apk)
+          files: |
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
+
+      - name: Update GitHub Release v1.2.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.0
+          name: "MJ PULSE Music v1.2.0 (Updated to v1.3.0)"
+          body: "Official Android APK for MJ PULSE Music v1.3.0"
+          files: |
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk
+
+      - name: Update GitHub Release v1.0.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "MJ PULSE Music v1.0.0 (Updated to v1.3.0)"
+          body: "Official Android APK for MJ PULSE Music v1.3.0"
+          files: |
+            build-outputs/MJPulse-Music.apk
+            build-outputs/app-debug.apk

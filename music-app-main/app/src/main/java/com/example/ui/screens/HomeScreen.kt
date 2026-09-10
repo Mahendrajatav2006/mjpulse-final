@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.SpatialAudio
 import androidx.compose.material.icons.filled.SurroundSound
@@ -82,6 +83,7 @@ fun HomeScreen(
     onOpenDjMode: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenPlayer: () -> Unit,
+    onOpenPlaylist: () -> Unit = onOpenHistory,
     modifier: Modifier = Modifier
 ) {
     var allSongs by remember { mutableStateOf(MusicRepository.sampleSongs) }
@@ -153,13 +155,13 @@ fun HomeScreen(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // History quick launch
+                    // Playlist quick launch (Replaced History with Playlist)
                     GlassCard(
                         shape = RoundedCornerShape(12.dp),
-                        borderColor = NeonGreen.copy(alpha = 0.5f),
-                        glowColor = NeonGreen,
-                        onClick = onOpenHistory,
-                        modifier = Modifier.testTag("home_history_btn")
+                        borderColor = NeonPink.copy(alpha = 0.5f),
+                        glowColor = NeonPink,
+                        onClick = onOpenPlaylist,
+                        modifier = Modifier.testTag("home_playlist_btn")
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
@@ -167,12 +169,12 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.History,
-                                contentDescription = "History",
-                                tint = NeonGreen,
+                                imageVector = Icons.Default.QueueMusic,
+                                contentDescription = "Playlists",
+                                tint = NeonPink,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Text("HISTORY", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NeonGreen)
+                            Text("PLAYLIST", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NeonPink)
                         }
                     }
 

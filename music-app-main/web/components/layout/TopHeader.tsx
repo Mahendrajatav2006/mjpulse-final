@@ -12,6 +12,10 @@ import {
   Compass,
   LayoutDashboard,
   Download,
+  Smartphone,
+  Settings,
+  History,
+  Trash2,
 } from "lucide-react";
 import { NavTab } from "../../types/music";
 
@@ -30,12 +34,74 @@ export default function TopHeader({
 }: TopHeaderProps) {
   const [searchInput, setSearchInput] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
   const [isDark, setIsDark] = useState(true);
+
+  // Search History from localStorage
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("mj_pulse_search_history");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return ["Arijit Singh", "Diljit Dosanjh", "Kesariya", "Starboy", "Lo-Fi Beats"];
+  });
+
+  const saveQuery = (query: string) => {
+    const clean = query.trim();
+    if (!clean) return;
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((item) => item.toLowerCase() !== clean.toLowerCase());
+      const updated = [clean, ...filtered].slice(0, 8);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("mj_pulse_search_history", JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
+      saveQuery(searchInput.trim());
       onGlobalSearch(searchInput.trim());
+      setShowHistoryDropdown(false);
+    }
+  };
+
+  const handleSelectHistory = (term: string) => {
+    setSearchInput(term);
+    saveQuery(term);
+    onGlobalSearch(term);
+    setShowHistoryDropdown(false);
+  };
+
+  const handleRemoveHistory = (term: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches((prev) => {
+      const updated = prev.filter((item) => item !== term);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("mj_pulse_search_history", JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+  };
+
+  const handleClearAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("mj_pulse_search_history");
+      } catch {}
     }
   };
 
@@ -58,51 +124,125 @@ export default function TopHeader({
         </button>
 
         {/* Global Search Bar (Image 3) */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search songs, users, playlists, updates..."
-            className="w-full pl-10 pr-14 py-2 rounded-xl bg-[#111322] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 focus:border-[#6366F1] focus:outline-none transition shadow-inner"
-          />
-          {searchInput ? (
-            <button
-              type="button"
-              onClick={() => setSearchInput("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          ) : (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-white/40 font-mono pointer-events-none">
-              ⌘ /
-            </span>
+        <div className="relative flex-1">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchInput}
+              onFocus={() => setShowHistoryDropdown(true)}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search songs, users, playlists, updates..."
+              className="w-full pl-10 pr-14 py-2 rounded-xl bg-[#111322] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 focus:border-[#6366F1] focus:outline-none transition shadow-inner"
+            />
+            {searchInput ? (
+              <button
+                type="button"
+                onClick={() => setSearchInput("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-white/40 font-mono pointer-events-none">
+                ⌘ /
+              </span>
+            )}
+          </form>
+
+          {/* Search History Dropdown */}
+          {showHistoryDropdown && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowHistoryDropdown(false)}
+              />
+              <div className="absolute left-0 right-0 top-full mt-2 bg-[#0d0f1c] border border-white/10 rounded-2xl p-3 shadow-2xl z-50 space-y-2 max-w-lg">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5 text-[#00F2FE]" />
+                    <span>Search History</span>
+                    {recentSearches.length > 0 && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-white/10 text-white/50 font-mono">
+                        {recentSearches.length}
+                      </span>
+                    )}
+                  </span>
+                  {recentSearches.length > 0 && (
+                    <button
+                      onClick={handleClearAll}
+                      className="text-[10px] text-white/40 hover:text-red-400 font-medium transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                      <span>Clear All</span>
+                    </button>
+                  )}
+                </div>
+
+                {recentSearches.length === 0 ? (
+                  <div className="py-3 text-center text-xs text-white/30">
+                    No recent searches
+                  </div>
+                ) : (
+                  <div className="space-y-1 max-h-56 overflow-y-auto">
+                    {recentSearches.map((term) => (
+                      <div
+                        key={term}
+                        onClick={() => handleSelectHistory(term)}
+                        className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.08] text-xs text-white/80 hover:text-white cursor-pointer group transition"
+                      >
+                        <div className="flex items-center space-x-2.5 overflow-hidden">
+                          <History className="w-3.5 h-3.5 text-[#00F2FE]/70 group-hover:text-[#00F2FE] flex-shrink-0" />
+                          <span className="truncate">{term}</span>
+                        </div>
+                        <button
+                          onClick={(e) => handleRemoveHistory(term, e)}
+                          className="p-1 rounded text-white/20 hover:text-red-400 hover:bg-white/10 transition cursor-pointer"
+                          title="Remove item"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
-        </form>
+        </div>
       </div>
 
       {/* Right Icons: Notification (8), Mail (2), Moon, User Profile (Image 3) */}
       <div className="flex items-center space-x-3 sm:space-x-4 ml-4">
-        {/* Toggle Mode: Dashboard vs Showcase */}
-        <div className="hidden sm:flex items-center bg-white/5 border border-white/10 p-0.5 rounded-xl text-xs">
+        {/* Toggle Mode: Android App vs Dashboard vs Showcase */}
+        <div className="flex items-center bg-white/5 border border-white/10 p-0.5 rounded-xl text-xs">
+          <button
+            onClick={() => onSelectTab("android")}
+            className={`px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "android"
+                ? "bg-gradient-to-r from-[#00F2FE] to-[#FF007F] text-black font-black shadow-lg shadow-[#00F2FE]/25"
+                : "text-white/70 hover:text-white"
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>Android App</span>
+          </button>
           <button
             onClick={() => onSelectTab("dashboard")}
             className={`px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
-              activeTab !== "showcase"
+              activeTab === "dashboard"
                 ? "bg-[#6366F1] text-white font-bold shadow"
                 : "text-white/60 hover:text-white"
             }`}
           >
             <LayoutDashboard className="w-3 h-3" />
-            <span>Dashboard</span>
+            <span className="hidden sm:inline">Dashboard</span>
           </button>
           <button
             onClick={() => onSelectTab("showcase")}
-            className={`px-3 py-1 rounded-lg transition flex items-center gap-1.5 ${
+            className={`hidden md:flex px-3 py-1 rounded-lg transition items-center gap-1.5 ${
               activeTab === "showcase"
-                ? "bg-gradient-to-r from-[#00F2FE] to-[#FF007F] text-black font-bold shadow"
+                ? "bg-white/20 text-white font-bold shadow"
                 : "text-white/60 hover:text-white"
             }`}
           >
@@ -181,17 +321,27 @@ export default function TopHeader({
           {isDark ? <Moon className="w-4 h-4 text-white/70" /> : <Sun className="w-4 h-4 text-amber-400" />}
         </button>
 
-        {/* User Profile Badge (MJ Mahendra Admin - Image 3) */}
+        {/* User Profile Badge (MJ Mahendra Admin - Image 3) -> Opens Settings */}
         <div
           onClick={() => onSelectTab("settings")}
           className="flex items-center space-x-2.5 pl-2 cursor-pointer group"
+          title="Click MJ Profile to Open Settings"
+          role="button"
+          tabIndex={0}
         >
-          <div className="w-8 h-8 rounded-full bg-[#8B5CF6] flex items-center justify-center text-white font-bold text-xs shadow">
-            MJ
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00F2FE] via-[#8B5CF6] to-[#FF007F] p-0.5 group-hover:scale-105 transition shadow">
+              <div className="w-full h-full rounded-full bg-[#111322] flex items-center justify-center text-white group-hover:text-[#00F2FE] font-bold text-xs transition">
+                MJ
+              </div>
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#8B5CF6] border border-[#080911] flex items-center justify-center">
+              <Settings className="w-2 h-2 text-white group-hover:rotate-90 transition duration-300" />
+            </span>
           </div>
           <div className="hidden md:block text-left">
-            <p className="text-xs font-bold text-white leading-none">Mahendra</p>
-            <p className="text-[10px] text-white/40 leading-none mt-1">Admin</p>
+            <p className="text-xs font-bold text-white group-hover:text-[#00F2FE] leading-none transition">Mahendra</p>
+            <p className="text-[10px] text-white/40 leading-none mt-1 group-hover:text-white/70 transition">Admin • Settings</p>
           </div>
         </div>
       </div>

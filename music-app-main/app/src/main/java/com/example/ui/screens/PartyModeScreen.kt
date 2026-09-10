@@ -76,6 +76,8 @@ fun PartyModeScreen(
     modifier: Modifier = Modifier
 ) {
     var strobeFlashEnabled by remember { mutableStateOf(false) }
+    var flashScreenEnabled by remember { mutableStateOf(false) }
+    var flashLightTorchEnabled by remember { mutableStateOf(false) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseRing by infiniteTransition.animateFloat(
@@ -294,10 +296,10 @@ fun PartyModeScreen(
                         }
                     }
 
-                    // Strobe Flash Toggle
+                    // Strobe & Flash Screen Toggle
                     GlassCard(
                         modifier = Modifier.weight(1f),
-                        borderColor = if (strobeFlashEnabled) NeonCyan else Color(0x33FFFFFF)
+                        borderColor = if (flashScreenEnabled || strobeFlashEnabled) NeonCyan else Color(0x33FFFFFF)
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -307,13 +309,16 @@ fun PartyModeScreen(
                             Icon(
                                 imageVector = Icons.Default.FlashOn,
                                 contentDescription = null,
-                                tint = if (strobeFlashEnabled) NeonCyan else TextMuted,
+                                tint = if (flashScreenEnabled || strobeFlashEnabled) NeonCyan else TextMuted,
                                 modifier = Modifier.size(20.dp)
                             )
-                            Text("Strobe FX", fontSize = 12.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            Text("Flash Screen", fontSize = 11.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
                             Switch(
-                                checked = strobeFlashEnabled,
-                                onCheckedChange = { strobeFlashEnabled = it },
+                                checked = flashScreenEnabled || strobeFlashEnabled,
+                                onCheckedChange = { 
+                                    flashScreenEnabled = it
+                                    strobeFlashEnabled = it 
+                                },
                                 colors = SwitchDefaults.colors(
                                     checkedThumbColor = Color.White,
                                     checkedTrackColor = NeonCyan
@@ -321,6 +326,43 @@ fun PartyModeScreen(
                                 modifier = Modifier.size(36.dp)
                             )
                         }
+                    }
+                }
+
+                // Row 2: Camera Flash Light (Torch)
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    borderColor = if (flashLightTorchEnabled) Color(0xFFFFB300) else Color(0x33FFFFFF)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ElectricBolt,
+                                contentDescription = null,
+                                tint = if (flashLightTorchEnabled) Color(0xFFFFB300) else TextMuted,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text("Flash Light (Torch LED)", fontSize = 12.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
+                                Text("Camera LED torch / strobe sync", fontSize = 10.sp, color = TextMuted)
+                            }
+                        }
+                        Switch(
+                            checked = flashLightTorchEnabled,
+                            onCheckedChange = { flashLightTorchEnabled = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = Color(0xFFFFB300)
+                            ),
+                            modifier = Modifier.size(36.dp)
+                        )
                     }
                 }
 

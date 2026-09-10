@@ -3,6 +3,7 @@ export interface Track {
   title: string;
   artist: string;
   album?: string;
+  genre?: string;
   thumbnail: string;
   streamUrl?: string;
   duration?: number;
@@ -20,6 +21,7 @@ export interface SearchApiResponse {
 }
 
 export type NavTab =
+  | "android"
   | "dashboard"
   | "showcase"
   | "music"

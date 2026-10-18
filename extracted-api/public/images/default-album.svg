@@ -1,0 +1,21 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1e1b4b"/>
+      <stop offset="0.5" stop-color="#4c1d95"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="150" y1="150" x2="350" y2="350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06b6d4"/>
+      <stop offset="0.5" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <rect width="500" height="500" fill="url(#bg)"/>
+  <circle cx="250" cy="250" r="160" stroke="url(#glow)" stroke-width="6" opacity="0.4"/>
+  <circle cx="250" cy="250" r="110" stroke="url(#glow)" stroke-width="4" opacity="0.6"/>
+  <circle cx="250" cy="250" r="50" fill="url(#glow)"/>
+  <circle cx="250" cy="250" r="14" fill="#0f172a"/>
+  <!-- Note icon -->
+  <path d="M245 220V260M245 260A12 12 0 1 1 233 248C245 248 245 260 245 260ZM245 220L270 212V248M270 248A12 12 0 1 1 258 236C270 236 270 248 270 248Z" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

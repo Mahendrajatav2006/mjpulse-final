@@ -1,6 +1,0 @@
-{
-  "name": "MJ PULSE",
-  "description": "High-fidelity Android & Web music streaming app with dynamic genre stations, 5-band studio equalizer, synced karaoke lyrics, and official v1.3.0 APK download.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

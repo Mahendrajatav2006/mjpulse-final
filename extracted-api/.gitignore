@@ -1,0 +1,12 @@
+node_modules/
+.next/
+*.log
+.DS_Store
+dist/
+.env*.local
+*.apk
+*.apk.backup
+.firebase/
+*.tsbuildinfo
+.vercel
+public/mjpulse.apk

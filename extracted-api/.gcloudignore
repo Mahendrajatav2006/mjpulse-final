@@ -1,0 +1,11 @@
+.git
+.github
+*.apk
+public/*.apk
+public/**/*.apk
+node_modules/.cache
+.next/cache
+.next/cache/**
+.next/server/app/api/**/*.map
+.next/static/**/*.map
+*.map

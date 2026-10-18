@@ -1,0 +1,372 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Orbitron:wght@600;700;900&family=Outfit:wght@500;600;700;800&family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Space+Grotesk:wght@600;700&family=Syne:wght@700;800&family=Teko:wght@600;700&family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-orbitron: 'Orbitron', monospace, sans-serif;
+  --font-cursive: 'Great Vibes', cursive;
+
+  /* Dynamic MJ PULSE Theme Engine Variables */
+  --theme-primary: #00F0FF;
+  --theme-secondary: #FF00E5;
+  --theme-accent: #B47CFF;
+  --theme-bg: #08090F;
+  --theme-card: rgba(21, 21, 33, 0.78);
+  --theme-border: rgba(0, 240, 255, 0.35);
+  --theme-radius: 20px;
+  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --theme-letter-spacing: 0.5px;
+  --theme-glow: rgba(0, 240, 255, 0.45);
+  --theme-text-transform: none;
+}
+
+@keyframes waveBar1 { 0%, 100% { height: 10px; } 50% { height: 26px; } }
+@keyframes waveBar2 { 0%, 100% { height: 16px; } 50% { height: 38px; } }
+@keyframes waveBar3 { 0%, 100% { height: 12px; } 50% { height: 28px; } }
+@keyframes waveBar4 { 0%, 100% { height: 18px; } 50% { height: 42px; } }
+@keyframes waveBar5 { 0%, 100% { height: 18px; } 50% { height: 40px; } }
+@keyframes waveBar6 { 0%, 100% { height: 12px; } 50% { height: 30px; } }
+@keyframes waveBar7 { 0%, 100% { height: 16px; } 50% { height: 36px; } }
+@keyframes waveBar8 { 0%, 100% { height: 10px; } 50% { height: 24px; } }
+
+body {
+  background-color: var(--theme-bg, #07070b);
+  color: #f1f5f9;
+  font-family: var(--theme-font, var(--font-inter)) !important;
+  letter-spacing: var(--theme-letter-spacing, normal) !important;
+  text-transform: var(--theme-text-transform, none);
+  overflow-x: hidden;
+  transition: background-color 0.35s ease, font-family 0.25s ease;
+}
+
+/* Dynamic MJ PULSE Theme Engine Typography cascading */
+button, input, select, textarea, h1, h2, h3, h4, h5, h6, .font-display, .font-sans {
+  font-family: var(--theme-font, var(--font-inter)) !important;
+  letter-spacing: var(--theme-letter-spacing, normal) !important;
+}
+
+/* Headings text transformation (e.g., uppercase for Cyber, Rave, Toxic, Laser themes) */
+h1, h2, h3, h4, .theme-heading {
+  text-transform: var(--theme-text-transform, none);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272738;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary, #8b5cf6);
+}
+
+/* Glassmorphism Classes with Dynamic Theme Engine Hooks */
+.glass-panel {
+  background: var(--theme-card, rgba(15, 15, 23, 0.72));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.08)) !important;
+  border-radius: var(--theme-radius, 20px) !important;
+}
+
+.glass-panel-glow {
+  background: var(--theme-card, rgba(18, 17, 30, 0.78));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--theme-border, rgba(139, 92, 246, 0.28)) !important;
+  border-radius: var(--theme-radius, 24px) !important;
+  box-shadow: 0 8px 32px 0 var(--theme-glow, rgba(139, 92, 246, 0.12)) !important;
+}
+
+.glass-card {
+  background: var(--theme-card, rgba(22, 22, 34, 0.65));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.06)) !important;
+  border-radius: var(--theme-radius, 20px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: var(--theme-primary, rgba(139, 92, 246, 0.4)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -6px var(--theme-glow, rgba(139, 92, 246, 0.22)) !important;
+}
+
+/* Theme Adaptive Controls & Action Buttons */
+.theme-btn-gradient {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary)) !important;
+  border-radius: var(--theme-radius, 20px) !important;
+  box-shadow: 0 0 20px var(--theme-glow, rgba(0, 240, 255, 0.4)) !important;
+  color: #ffffff !important;
+  text-transform: var(--theme-text-transform, none);
+}
+
+.theme-pill-shape {
+  border-radius: var(--theme-radius, 20px) !important;
+}
+
+/* Neon Text Glow */
+.text-glow-purple {
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 24px rgba(139, 92, 246, 0.3);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6), 0 0 24px rgba(0, 240, 255, 0.3);
+}
+
+.text-glow-pink {
+  text-shadow: 0 0 12px rgba(255, 0, 127, 0.6), 0 0 24px rgba(255, 0, 127, 0.3);
+}
+
+/* Animated Gradient Background */
+.cyber-gradient-bg {
+  background: radial-gradient(circle at 20% 15%, rgba(139, 92, 246, 0.18) 0%, transparent 40%),
+              radial-gradient(circle at 85% 25%, rgba(0, 240, 255, 0.14) 0%, transparent 40%),
+              radial-gradient(circle at 50% 80%, rgba(255, 0, 127, 0.12) 0%, transparent 50%),
+              #07070b;
+}
+
+/* Range input custom styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #232336;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 10px #8b5cf6;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+  background: #ffffff;
+}
+
+/* ========================================================
+   LIGHT THEME MODE STYLES & HIGH-CONTRAST TEXT FIXES
+   ======================================================== */
+body.light-theme {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  color-scheme: light;
+}
+
+/* Ensure gradient text and text-transparent NEVER get overridden by solid colors in light mode */
+body.light-theme .text-transparent,
+body.light-theme [class*="text-transparent"],
+body.light-theme .bg-clip-text {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Force dark text on general cards, panels and body text in light mode */
+body.light-theme p:not([class*="text-transparent"]):not([class*="text-white"]),
+body.light-theme span:not([class*="text-transparent"]):not([class*="bg-clip-text"]):not([class*="text-white"]),
+body.light-theme h1:not([class*="text-transparent"]),
+body.light-theme h2:not([class*="text-transparent"]),
+body.light-theme h3:not([class*="text-transparent"]),
+body.light-theme h4:not([class*="text-transparent"]),
+body.light-theme h5:not([class*="text-transparent"]),
+body.light-theme h6:not([class*="text-transparent"]) {
+  color: #0f172a;
+}
+
+/* Light mode text contrast overrides */
+body.light-theme .text-white:not(button[class*="bg-"]):not([class*="bg-gradient-"]):not([class*="bg-purple-"]):not([class*="bg-pink-"]):not(.badge-white) {
+  color: #0f172a !important;
+}
+
+body.light-theme .text-slate-100,
+body.light-theme .text-slate-200,
+body.light-theme .text-slate-300 {
+  color: #1e293b !important;
+}
+
+body.light-theme .text-slate-400 {
+  color: #334155 !important;
+}
+
+body.light-theme .text-slate-500 {
+  color: #475569 !important;
+}
+
+body.light-theme .text-purple-300,
+body.light-theme .text-purple-400 {
+  color: #6b21a8 !important;
+}
+
+body.light-theme .text-cyan-300,
+body.light-theme .text-cyan-400 {
+  color: #0369a1 !important;
+}
+
+body.light-theme .text-pink-300,
+body.light-theme .text-pink-400 {
+  color: #be185d !important;
+}
+
+body.light-theme .text-yellow-300,
+body.light-theme .text-yellow-400,
+body.light-theme .text-amber-400 {
+  color: #b45309 !important;
+}
+
+/* PRESERVE WHITE TEXT ON DARK / GRADIENT BUTTONS & PILLS */
+body.light-theme button[class*="bg-gradient"],
+body.light-theme button[class*="bg-purple-600"],
+body.light-theme button[class*="bg-pink-600"],
+body.light-theme button[class*="bg-black"],
+body.light-theme .bg-gradient-to-r,
+body.light-theme .bg-gradient-to-tr,
+body.light-theme .bg-purple-600,
+body.light-theme .bg-pink-600,
+body.light-theme [class*="bg-gradient-to-r"] span,
+body.light-theme [class*="bg-gradient-to-r"] p,
+body.light-theme [class*="bg-gradient-to-r"] svg,
+body.light-theme button[class*="bg-gradient"] span,
+body.light-theme button[class*="bg-purple-600"] span,
+body.light-theme button[class*="bg-purple-600"] svg,
+body.light-theme button[class*="bg-pink-600"] span,
+body.light-theme button[class*="bg-pink-600"] svg {
+  color: #ffffff !important;
+}
+
+body.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(203, 213, 225, 0.8) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+
+body.light-theme .glass-panel-glow {
+  background: rgba(255, 255, 255, 0.97) !important;
+  border-color: rgba(139, 92, 246, 0.45) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1) !important;
+  color: #0f172a !important;
+}
+
+body.light-theme .glass-card {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(226, 232, 240, 0.95) !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06) !important;
+}
+
+body.light-theme .glass-card:hover {
+  background: #ffffff !important;
+  border-color: rgba(139, 92, 246, 0.6) !important;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12) !important;
+}
+
+body.light-theme .bg-\[\#11111c\],
+body.light-theme .bg-\[\#0a0a10\],
+body.light-theme .bg-\[\#161622\] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme input {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme input::placeholder {
+  color: #64748b !important;
+}
+
+body.light-theme ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+body.light-theme input[type="range"] {
+  background: #cbd5e1;
+}
+
+/* ========================================================
+   DASHBOARD VIEW HIGH-CONTRAST RULES (LIGHT & DARK THEMES)
+   ======================================================== */
+#dashboard-view {
+  color: inherit;
+}
+
+/* Dark Mode Dashboard Contrast */
+body:not(.light-theme) #dashboard-view h2,
+body:not(.light-theme) #dashboard-view h3,
+body:not(.light-theme) #dashboard-view h4,
+body:not(.light-theme) #dashboard-view h5 {
+  color: #ffffff !important;
+}
+
+body:not(.light-theme) #dashboard-view p,
+body:not(.light-theme) #dashboard-view .text-slate-400,
+body:not(.light-theme) #dashboard-view .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* Light Mode Dashboard High-Contrast Polish */
+body.light-theme #dashboard-view h2,
+body.light-theme #dashboard-view h3,
+body.light-theme #dashboard-view h4,
+body.light-theme #dashboard-view h5 {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+body.light-theme #dashboard-view p,
+body.light-theme #dashboard-view .text-slate-400,
+body.light-theme #dashboard-view .text-slate-300,
+body.light-theme #dashboard-view .text-slate-500 {
+  color: #334155 !important;
+}
+
+body.light-theme #dashboard-view .glass-card,
+body.light-theme #dashboard-view .glass-panel {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06) !important;
+  color: #0f172a !important;
+}
+
+body.light-theme #dashboard-view .glass-panel-glow {
+  background: #ffffff !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 8px 24px -4px rgba(168, 85, 247, 0.15) !important;
+  color: #0f172a !important;
+}
+
+body.light-theme #dashboard-view .bg-black\/20 {
+  background-color: #f8fafc !important;
+}

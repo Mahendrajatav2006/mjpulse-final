@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "site": "mj-pulse",
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "asia-south1"
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
